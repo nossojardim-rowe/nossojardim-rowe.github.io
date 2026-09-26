@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5B2A4A">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Nosso Jardim — gestação e glicemia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F1F6; --surface:#FFFFFF; --ink:#2A1A26; --muted:#6F5E6B; --line:#E4DCE3;
+  --plum:#5B2A4A; --plum-soft:#EFE3EB; --leaf:#2F8F6B; --leaf-soft:#E2F3EB;
+  --amber:#B86E0A; --amber-soft:#FBEFD9; --danger:#B3261E; --danger-soft:#FBE3E1;
+  --water:#2C7DB8; --water-soft:#E2EFF8;
+  --s-cafe:#B86E0A; --s-almoco:#2F8F6B; --s-jantar:#2C7DB8; --s-jejum:#8A3F6E;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1A1218; --surface:#251B22; --ink:#F3E9F0; --muted:#B9A7B4; --line:#3A2D36;
+    --plum:#D9A6C6; --plum-soft:#3A2533; --leaf:#6FCF9F; --leaf-soft:#1E3329;
+    --amber:#F0B25A; --amber-soft:#3A2C17; --danger:#FF8A80; --danger-soft:#3D1F1D;
+    --water:#7DB9E8; --water-soft:#1B2B38;
+    --s-cafe:#F0B25A; --s-almoco:#6FCF9F; --s-jantar:#7DB9E8; --s-jejum:#E7A9CF; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1A1218; --surface:#251B22; --ink:#F3E9F0; --muted:#B9A7B4; --line:#3A2D36;
+  --plum:#D9A6C6; --plum-soft:#3A2533; --leaf:#6FCF9F; --leaf-soft:#1E3329;
+  --amber:#F0B25A; --amber-soft:#3A2C17; --danger:#FF8A80; --danger-soft:#3D1F1D;
+  --water:#7DB9E8; --water-soft:#1B2B38;
+  --s-cafe:#F0B25A; --s-almoco:#6FCF9F; --s-jantar:#7DB9E8; --s-jejum:#E7A9CF; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px 110px}
+header.top{padding:22px 4px 10px;display:flex;gap:14px;align-items:center}
+.plantbox{width:88px;height:88px;flex:none;border-radius:50%;background:var(--plum-soft) url(foto-perfil.jpg) center/cover no-repeat;position:relative;box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--plum)}
+.pbadge{position:absolute;right:-8px;bottom:-8px;width:46px;height:46px;border-radius:50%;background:var(--surface);border:2px solid var(--line);display:grid;place-items:center;overflow:hidden}
+.week{font-size:2rem;font-weight:800;line-height:1;letter-spacing:-.02em;color:var(--plum)}
+.sub{color:var(--muted);font-size:.9rem}
+.chips{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:.82rem;font-weight:600}
+h2{font-size:1.05rem;margin:0 0 10px;font-weight:700}
+h3{font-size:.95rem;margin:12px 0 6px;font-weight:700}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}
+.daybar{display:flex;align-items:center;justify-content:space-between;margin:10px 0 4px}
+.daybar b{font-size:1.1rem}
+button{font:inherit;cursor:pointer;border:none;border-radius:12px;padding:10px 14px;background:var(--plum);color:var(--surface);font-weight:600}
+button.ghost{background:transparent;color:var(--plum);border:1px solid var(--line)}
+button.small{padding:6px 10px;font-size:.85rem}
+button.link{background:transparent;color:var(--plum);padding:4px 0;text-decoration:underline;text-underline-offset:3px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--plum);outline-offset:2px}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 10px;width:100%;min-width:0}
+label.f{display:block;font-size:.82rem;color:var(--muted);font-weight:600;margin-bottom:4px}
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gbox{border-radius:14px;padding:10px;background:var(--bg);border:2px solid transparent}
+.gbox.ok{background:var(--leaf-soft);border-color:var(--leaf)}
+.gbox.high{background:var(--amber-soft);border-color:var(--amber)}
+.gbox.low{background:var(--danger-soft);border-color:var(--danger)}
+.gbox input{font-size:1.4rem;font-weight:700;background:transparent;border:none;padding:2px 0}
+.gbox .meta{font-size:.75rem;color:var(--muted)}
+.row{display:flex;gap:8px;align-items:end}
+.row>*{flex:1}
+.row>.nf{flex:none}
+ul.list{list-style:none;margin:10px 0 0;padding:0}
+ul.list li{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:.93rem}
+.x{background:transparent;color:var(--muted);padding:4px 8px;font-size:1.1rem}
+.drops{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.drop{width:30px;height:38px;padding:0;background:transparent;border-radius:8px}
+.drop svg path{fill:var(--water-soft);stroke:var(--water);stroke-width:1.5}
+.drop.on svg path{fill:var(--water)}
+.check{display:flex;gap:10px;align-items:center;padding:6px 0}
+.check input{width:22px;height:22px;accent-color:var(--leaf);flex:none}
+.alert{border-radius:14px;padding:12px;margin:12px 0;font-size:.92rem}
+.alert.danger{background:var(--danger-soft);color:var(--ink);border:1px solid var(--danger)}
+.alert.info{background:var(--plum-soft)}
+.alert.ok{background:var(--leaf-soft)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{padding:7px 6px;text-align:center;border-bottom:1px solid var(--line)}
+th{font-size:.75rem;color:var(--muted);font-weight:600}
+td.ok{color:var(--leaf);font-weight:700}
+td.high{color:var(--amber);font-weight:700}
+td.low{color:var(--danger);font-weight:800}
+.big{font-size:2.4rem;font-weight:800;letter-spacing:-.02em;line-height:1}
+.mid{font-size:1.6rem;font-weight:800;letter-spacing:-.01em;line-height:1.05}
+.chat{display:flex;flex-direction:column;gap:10px}
+.bub{padding:10px 12px;border-radius:16px;max-width:88%;white-space:pre-wrap;font-size:.95rem}
+.bub.u{align-self:flex-end;background:var(--plum);color:var(--surface);border-bottom-right-radius:4px}
+.bub.a{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.quick{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.reward{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.reward .cost{font-weight:800;color:var(--plum)}
+.bar{height:10px;border-radius:99px;background:var(--plum-soft);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--leaf);border-radius:99px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav.tabs .in{display:flex;max-width:560px;width:100%}
+nav.tabs button{flex:1 1 auto;min-width:0;background:transparent;color:var(--muted);border-radius:0;padding:9px 0 11px;font-size:.6rem;letter-spacing:-.02em;display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;overflow:visible}
+nav.tabs button span{font-size:1.2rem;line-height:1}
+nav.tabs button[aria-current="true"]{color:var(--plum);font-weight:800}
+.thumb{width:52px;height:52px;border-radius:12px;object-fit:cover;flex:none;background:var(--plum-soft)}
+.refrow{display:flex;gap:10px;align-items:flex-start}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.pcard{border-radius:14px;overflow:hidden;background:var(--bg);border:1px solid var(--line);padding:0;text-align:left;color:var(--ink);font-weight:400;display:block;width:100%}
+.pcard img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.pcard .semfoto{width:100%;aspect-ratio:1}
+.semfoto{display:grid;place-items:center;font-size:2rem;background:var(--plum-soft)}
+.pcard .pt{padding:8px 10px;font-size:.85rem}
+.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:20;display:flex;align-items:flex-end;justify-content:center;padding:env(safe-area-inset-top,0px) 0 0}
+.modal .box{background:var(--surface);width:100%;max-width:560px;max-height:90%;overflow:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.modal img{width:100%;border-radius:14px;display:block;margin-bottom:10px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:.9rem;z-index:30;display:none;max-width:90vw;text-align:center}
+.muted{color:var(--muted);font-size:.88rem}
+.tiny{color:var(--muted);font-size:.78rem}
+/* novos */
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.seg button{padding:6px 11px;font-size:.82rem;border-radius:99px;background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--plum);color:var(--surface);border-color:var(--plum)}
+.pos{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.85rem;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:99px;padding:2px 9px;font-size:.78rem;font-weight:700}
+.pill.ok{background:var(--leaf-soft);color:var(--leaf)}
+.pill.high{background:var(--amber-soft);color:var(--amber)}
+.pill.low{background:var(--danger-soft);color:var(--danger)}
+.pill.wait{background:var(--plum-soft);color:var(--plum)}
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stat3 .mid{color:var(--plum)}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:.93rem}
+.kv b{white-space:nowrap}
+details{border-top:1px solid var(--line);margin-top:10px}
+details>summary{cursor:pointer;list-style:none;padding:10px 0 2px;font-weight:700;color:var(--plum);display:flex;justify-content:space-between;align-items:center}
+details>summary::-webkit-details-marker{display:none}
+details>summary::after{content:"＋";font-weight:700}
+details[open]>summary::after{content:"－"}
+section.card>details:first-child{border-top:none;margin-top:0}
+section.card>details:first-child>summary{padding-top:0}
+.pbars .pb{display:grid;grid-template-columns:62px 1fr 92px;gap:8px;align-items:center;font-size:.85rem;margin:7px 0}
+.pbars .track{height:12px;border-radius:99px;background:var(--plum-soft);overflow:hidden}
+.pbars .track i{display:block;height:100%;border-radius:99px}
+.pbars .v{text-align:right;font-weight:700}
+.corr{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line);align-items:flex-start}
+.corr .t{flex:1;min-width:0;font-size:.9rem}
+.baby{background:linear-gradient(135deg,var(--plum-soft),var(--leaf-soft));border:none}
+.baby .wk{font-size:1.5rem;font-weight:800;color:var(--plum);line-height:1.1}
+.babyrow{display:flex;gap:12px;align-items:center}
+.babyrow .ic{font-size:2.4rem;line-height:1;flex:none}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.card:not(.baby) .tags span{background:var(--bg)}
+.tags span{background:var(--surface);border-radius:99px;padding:3px 10px;font-size:.8rem;font-weight:600}
+.albumwk{display:flex;gap:12px;align-items:flex-start}
+.albumwk .ph{width:74px;height:74px;border-radius:14px;object-fit:cover;flex:none;background:var(--plum-soft);display:grid;place-items:center;font-size:1.8rem}
+.stage{display:inline-flex;gap:6px;align-items:center;font-weight:700;color:var(--plum)}
+.sw{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.sw input[type=checkbox]{width:22px;height:22px;accent-color:var(--leaf);flex:none}
+.sw input[type=time]{width:132px;flex:none}
+.sw .lab{flex:1;font-size:.93rem}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btnrow>button{flex:1 1 140px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+@media (prefers-reduced-motion:no-preference){.gbox{transition:background .25s,border-color .25s}}
+@media (max-width:360px){.wrap{padding:0 12px 110px}.week{font-size:1.7rem}.plantbox{width:76px;height:76px}.stat3 .mid{font-size:1.35rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="plantbox" id="plantSmall" role="img" aria-label="Foto da Thaismara"></div>
+    <div>
+      <div class="week" id="weekLbl">Semana —</div>
+      <div class="sub">Um dia de cada vez, juntos.</div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </header>
+  <main id="view"></main>
+</div>
+<nav class="tabs"><div class="in" id="tabs"></div></nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+/* =====================================================================
+   Nosso Jardim — núcleo: utilidades, estado, armazenamento e migração
+   Dados: localStorage "jardim-cache" = {dias, config}
+          IndexedDB "jardim-fotos" (store "fotos") = fotos por id
+   ===================================================================== */
+const APP_VERSAO='2.0';
+const SCHEMA=2;
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const hoje=()=>iso(new Date());
+const parse=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d)};
+const diffDias=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
+const br=s=>{const d=parse(s);return pad(d.getDate())+'/'+pad(d.getMonth()+1)};
+const brAno=s=>{const d=parse(s);return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()};
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone=o=>JSON.parse(JSON.stringify(o||{}));
+const agoraHM=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())};
+const media=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const arred=v=>v==null?null:Math.round(v);
+const isData=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s);
+
+/* Glicemias. Os limites vêm das metas configuradas (padrão 95 / 120). */
+const GL=[['jejum','Jejum'],['cafe','2h após café'],['almoco','2h após almoço'],['jantar','2h após jantar']];
+const GL_CURTO={jejum:'Jejum',cafe:'Pós-café',almoco:'Pós-almoço',jantar:'Pós-jantar'};
+const HIPO=70; // mensagem geral de segurança (valor baixo)
+const REF=['Café da manhã','Lanche da manhã','Almoço','Lanche da tarde','Jantar','Ceia'];
+const REF_POS={'Café da manhã':'cafe','Almoço':'almoco','Jantar':'jantar'}; // só estas têm glicemia 2h correspondente
+const POS_REF={cafe:'Café da manhã',almoco:'Almoço',jantar:'Jantar'};
+const REF_EMOJI={'Café da manhã':'☕','Lanche da manhã':'🍎','Almoço':'🍽️','Lanche da tarde':'🥪','Jantar':'🌙','Ceia':'🥛'};
+
+const PREMIOS_V2=[
+  {id:'v2-louca',nome:'Gustavo lava a louça',custo:500},
+  {id:'v2-banheiro',nome:'Gustavo lava o banheiro',custo:500},
+  {id:'v2-quintal',nome:'Gustavo lava o quintal',custo:1000},
+  {id:'v3-rainha',nome:'👑 Dia de rainha: Gustavo vira mordomo por um dia, com pano no braço, reverência e "pois não, Vossa Majestade?" a cada pedido',custo:2000},
+  {id:"v4-jantar",nome:"🍳 Gustavo faz o jantar da noite (cardápio aprovado pela coach)",custo:400},
+  {id:"v4-roupa",nome:"👕 Gustavo passa e dobra toda a roupa da semana",custo:600},
+  {id:"v4-cama",nome:"🛏️ Gustavo troca a roupa de cama e arruma o quarto",custo:300},
+  {id:"v4-cozinha",nome:"🧽 Faxina completa na cozinha: fogão, pia e geladeira por dentro",custo:800},
+  {id:"v4-enxoval",nome:"🍼 Gustavo organiza o enxoval e o cantinho do bebê",custo:700},
+  {id:"v4-lixo",nome:"🗑️ Uma semana levando o lixo e os recicláveis sem ela precisar pedir",custo:250},
+  {id:"v4-mercado",nome:"🛒 Gustavo faz o mercado da semana sozinho, com a lista dela",custo:350},
+  {id:"v4-casa",nome:"🧹 Gustavo aspira e passa pano na casa toda",custo:700},
+  {id:"v4-carro",nome:"🚗 Gustavo lava o carro",custo:600},
+  {id:"v4-cafe",nome:"☕ Café da manhã na cama preparado por Gustavo e Nicolas",custo:200},
+  {id:"v4-parque",nome:"🛝 Gustavo leva o Nicolas ao parque por 2 horas enquanto ela descansa",custo:300},
+  {id:"v4-noite",nome:"🛁 Gustavo cuida do banho, do jantar e da hora de dormir do Nicolas por uma noite",custo:250},
+  {id:"v4-sabado",nome:"😴 Sábado de manhã livre: Gustavo e Nicolas saem e ela dorme até tarde",custo:500},
+  {id:"v4-lanche",nome:"🧁 Gustavo e Nicolas preparam um lanche surpresa (saudável) para ela",custo:300},
+  {id:"v4-cartinha",nome:"💌 Gustavo e Nicolas fazem uma cartinha para o bebê e leem para a barriga",custo:150},
+  {id:"v4-cinema",nome:"🎬 Noite de cinema: ela escolhe o filme, os meninos montam a cabana de lençol",custo:350},
+  {id:"v4-show",nome:"🎤 Show de talentos de Gustavo e Nicolas (dança e música) só para ela",custo:200},
+  {id:"v4-passeio",nome:"🦁 Gustavo leva o Nicolas a um passeio especial e os dois trazem uma lembrança para ela",custo:900},
+  {id:"v4-brinquedos",nome:"🧸 Gustavo e Nicolas arrumam juntos todos os brinquedos",custo:250},
+  {id:"v4-spa",nome:"💅 Tarde de spa: massagem nos pés pelo Gustavo e unhas pintadas pelo Nicolas (esmalte infantil)",custo:400}
+];
+function defaultLembretes(){return{
+  ativo:false,
+  jejum:{on:false,hora:'07:00'},
+  cafe:{on:false},almoco:{on:false},jantar:{on:false},
+  vitaminas:{on:false,hora:'09:00'},
+  agua:{on:false},
+  pendentes:[],   // [{id,tipo,quando(ms),data}] lembretes de 2h após refeição
+  enviados:{}     // {'AAAA-MM-DD':{jejum:true,...}}
+}}
+function defaultConfig(){return{
+  gestRef:{data:'2026-09-25',semanas:17},
+  metaAgua:10, vitaminas:['Polivitamínico gestacional','Ácido fólico'],
+  insulinaPadrao:'NPH', pesoPre:null,
+  premios:PREMIOS_V2.map(p=>({...p})),
+  resgates:[],
+  // novos na versão 2 (schema 2)
+  metas:{jejum:95,pos:120},
+  lembretes:defaultLembretes(),
+  album:{},          // {'18':{nota:'',fotoId:null}}
+  nomeBebe:'',
+  relObs:'',
+  ultimoBackup:null
+}}
+
+const S={dias:{},config:defaultConfig(),db:null,sel:hoje(),tab:'hoje',chat:[],busy:false,pendingRender:false,
+  glicPer:14,glicSerie:'jejum',sub:null,relPer:14,relIni:null,relFim:null,relPdf:null,corrMais:false,albumEdit:null};
+let primeiraVez=false;
+try{const c=JSON.parse(localStorage.getItem('jardim-cache')||'null');if(c){S.dias=c.dias||{};S.config={...defaultConfig(),...c.config}}else primeiraVez=true}catch(e){primeiraVez=false;try{const raw=localStorage.getItem('jardim-cache');if(raw&&!localStorage.getItem('jardim-cache-ilegivel'))localStorage.setItem('jardim-cache-ilegivel',raw)}catch(_){}}
+/* Registros da folha de papel (importados só na primeira instalação, como antes) */
+const HIST={"2026-08-10":{jejum:97,almoco:99},"2026-08-11":{jejum:105,jantar:119},"2026-08-12":{jejum:99,cafe:96,almoco:97},"2026-08-13":{jejum:101},"2026-08-17":{cafe:97,almoco:104,jantar:105},"2026-08-18":{jejum:104},"2026-08-20":{jejum:100,cafe:90,almoco:93},"2026-08-21":{jejum:100},"2026-08-23":{cafe:102,almoco:101},"2026-08-24":{jejum:101,cafe:97},"2026-08-25":{jejum:98},"2026-08-26":{jejum:107,cafe:93},"2026-08-27":{jejum:106},"2026-08-28":{jejum:97},"2026-08-31":{almoco:89},"2026-09-01":{jejum:100,cafe:90,almoco:101},"2026-09-02":{jejum:96,cafe:99},"2026-09-04":{jejum:100,cafe:97},"2026-09-08":{cafe:87,almoco:96},"2026-09-09":{jejum:108,cafe:101}};
+if(primeiraVez){Object.entries(HIST).forEach(([d,g])=>{S.dias[d]={data:d,glic:g,insulina:[],refeicoes:[],agua:0,atividade:[],vitaminas:{},peso:null}});}
+
+let avisouCheio=false;
+function cache(){
+  try{localStorage.setItem('jardim-cache',JSON.stringify({dias:S.dias,config:S.config}));return true}
+  catch(e){if(!avisouCheio){avisouCheio=true;setTimeout(()=>toast('Não consegui salvar: a memória do app está cheia. Faça um backup em Eu → Dados e backup.'),50)}return false}
+}
+
+/* ---------- migração (schema 1 → 2) ----------
+   - nunca remove campos nem registros; só acrescenta o que falta com valor padrão
+   - antes da primeira migração guarda uma cópia intacta em "jardim-cache-pre-v2" */
+function numOk(v,min,max,pad){v=+v;return Number.isFinite(v)&&v>=min&&v<=max?v:pad}
+function normalizarDia(k,o){
+  if(!o||typeof o!=='object')o={};
+  const n={...o};
+  n.data=k;
+  if(!n.glic||typeof n.glic!=='object')n.glic={};
+  ['insulina','refeicoes','atividade'].forEach(f=>{if(!Array.isArray(n[f]))n[f]=[]});
+  if(typeof n.agua!=='number')n.agua=+n.agua||0;
+  if(!n.vitaminas||typeof n.vitaminas!=='object')n.vitaminas={};
+  if(n.peso===undefined)n.peso=null;
+  return n;
+}
+function normalizarConfig(c){
+  const d=defaultConfig();c={...d,...(c||{})};
+  c.gestRef=c.gestRef&&isData(c.gestRef.data)&&+c.gestRef.semanas>0?c.gestRef:d.gestRef;
+  c.metaAgua=numOk(c.metaAgua,1,30,10);
+  if(!Array.isArray(c.vitaminas))c.vitaminas=d.vitaminas;
+  if(!Array.isArray(c.premios))c.premios=d.premios;
+  if(!Array.isArray(c.resgates))c.resgates=[];
+  const m=c.metas||{};c.metas={jejum:numOk(m.jejum,60,200,95),pos:numOk(m.pos,60,250,120)};
+  const L=defaultLembretes(),l=c.lembretes||{};
+  c.lembretes={...L,...l};
+  ['jejum','cafe','almoco','jantar','vitaminas','agua'].forEach(k=>{c.lembretes[k]={...L[k],...(l[k]||{})}});
+  if(!Array.isArray(c.lembretes.pendentes))c.lembretes.pendentes=[];
+  if(!c.lembretes.enviados||typeof c.lembretes.enviados!=='object')c.lembretes.enviados={};
+  if(!c.album||typeof c.album!=='object')c.album={};
+  if(typeof c.nomeBebe!=='string')c.nomeBebe='';
+  if(typeof c.relObs!=='string')c.relObs='';
+  return c;
+}
+function migrar(){
+  const antes=+S.config.schema||1;let mudou=false;
+  if(antes<2){
+    try{if(!localStorage.getItem('jardim-cache-pre-v2')){const raw=localStorage.getItem('jardim-cache');if(raw)localStorage.setItem('jardim-cache-pre-v2',raw)}}catch(e){}
+  }
+  const antesTxt=JSON.stringify(S.config);
+  S.config=normalizarConfig(S.config);
+  Object.keys(S.dias).forEach(k=>{if(!isData(k))return;const n=normalizarDia(k,S.dias[k]);if(JSON.stringify(n)!==JSON.stringify(S.dias[k])){S.dias[k]=n;mudou=true}});
+  if(!S.config.inicio){S.config.inicio=hoje()}
+  // prêmios: acrescenta os que faltam, sem apagar os personalizados
+  if((S.config.premiosVersao||1)<4){
+    const tem=new Set(S.config.premios.map(p=>p.id));
+    S.config.premios=S.config.premios.filter(p=>p.id!=='v2-melancia');
+    PREMIOS_V2.forEach(p=>{if(!tem.has(p.id))S.config.premios.push({...p})});
+    S.config.premiosVersao=4;
+  }
+  S.config.schema=SCHEMA;
+  if(mudou||antesTxt!==JSON.stringify(S.config))cache();
+}
+
+function emptyDia(d){return{data:d,glic:{},insulina:[],refeicoes:[],agua:0,atividade:[],vitaminas:{},peso:null}}
+function dia(d){return {...emptyDia(d),...clone(S.dias[d])}}
+
+const timers={};
+function saveDia(o){
+  S.dias[o.data]=o;cache();render();agendarLembretes();
+  if(!S.db)return;
+  clearTimeout(timers[o.data]);
+  timers[o.data]=setTimeout(()=>S.db.collection('dias').doc(o.data).set(o).catch(()=>toast('Não salvou na nuvem. Os dados ficam neste aparelho.')),400);
+}
+function saveConfig(){
+  cache();render();
+  if(!S.db)return;
+  clearTimeout(timers.cfg);
+  timers.cfg=setTimeout(()=>S.db.doc('config/geral').set(S.config).catch(()=>toast('Não salvou os ajustes na nuvem.')),400);
+}
+function toast(t,ms){const el=document.getElementById('toast');el.textContent=t;el.style.display='block';clearTimeout(timers.t);timers.t=setTimeout(()=>el.style.display='none',ms||2800)}
+
+/* ---------- metas e classificação ---------- */
+const metaDe=k=>k==='jejum'?S.config.metas.jejum:S.config.metas.pos;
+function classe(k,v){if(v==null||v==='')return'';v=+v;if(v<HIPO)return'low';return v<metaDe(k)?'ok':'high'}
+const naMeta=(k,v)=>classe(k,v)==='ok';
+const TXT_CLASSE={ok:'✓ Dentro da meta',high:'Acima da meta',low:'Abaixo de 70'};
+
+/* ---------- fotos (IndexedDB, só neste aparelho) ---------- */
+const FDB={db:null,
+  abrir(){if(this.db)return Promise.resolve(this.db);return new Promise((ok,err)=>{const r=indexedDB.open('jardim-fotos',1);r.onupgradeneeded=()=>r.result.createObjectStore('fotos');r.onsuccess=()=>{this.db=r.result;ok(r.result)};r.onerror=()=>err(r.error)})},
+  async put(id,v){const db=await this.abrir();return new Promise((ok,err)=>{const tx=db.transaction('fotos','readwrite');tx.objectStore('fotos').put(v,id);tx.oncomplete=()=>ok();tx.onerror=()=>err(tx.error)})},
+  async get(id){const db=await this.abrir();return new Promise((ok,err)=>{const q=db.transaction('fotos').objectStore('fotos').get(id);q.onsuccess=()=>ok(q.result);q.onerror=()=>err(q.error)})},
+  async del(id){const db=await this.abrir();return new Promise(ok=>{const tx=db.transaction('fotos','readwrite');tx.objectStore('fotos').delete(id);tx.oncomplete=()=>ok();tx.onerror=()=>ok()})},
+  async tudo(){const db=await this.abrir();return new Promise((ok,err)=>{const out={};const st=db.transaction('fotos').objectStore('fotos');const q=st.openCursor();q.onsuccess=()=>{const c=q.result;if(c){out[c.key]=c.value;c.continue()}else ok(out)};q.onerror=()=>err(q.error)})}
+};
+S.fotoCache={};
+function hidratarFotos(){
+  document.querySelectorAll('img[data-foto]').forEach(async im=>{
+    const id=im.dataset.foto;
+    try{const src=S.fotoCache[id]||(S.fotoCache[id]=await FDB.get(id));
+      if(src)im.src=src;else{const d=document.createElement('div');d.className=im.className+' semfoto';d.textContent=im.dataset.vazio||'🍽️';im.replaceWith(d)}}catch(e){}
+  });
+}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{})}catch(e){}
+
+/* =====================================================================
+   Pontos, jardim (8 estágios), cuidado/murcha e semana da gestação
+   Os pontos NÃO dependem do valor da glicemia: premiam o cuidado.
+   ===================================================================== */
+function pontosDia(o){
+  let p=0;const g=o.glic||{};
+  GL.forEach(([k])=>{if(g[k]!=null)p+=5});
+  p+=Math.min((o.insulina||[]).length,2)*10;
+  p+=Math.min((o.refeicoes||[]).length,6)*3;
+  if((o.agua||0)>=S.config.metaAgua)p+=10;
+  if((o.atividade||[]).reduce((a,b)=>a+(+b.min||0),0)>=20)p+=10;
+  const vs=S.config.vitaminas;if(vs.length&&vs.every(v=>o.vitaminas&&o.vitaminas[v]))p+=5;
+  if(o.peso)p+=5;
+  const pos=['cafe','almoco','jantar'].filter(k=>g[k]!=null).length;
+  if(g.jejum!=null&&pos>=2)p+=10;
+  return p;
+}
+function pontosAte(dataFim){return Object.keys(S.dias).filter(d=>d<=dataFim).reduce((a,d)=>a+pontosDia(S.dias[d]),0)}
+function totais(){
+  const total=Object.values(S.dias).reduce((a,o)=>a+pontosDia(o),0);
+  const gasto=(S.config.resgates||[]).reduce((a,r)=>a+r.custo,0);
+  let seq=0,d=hoje();
+  if(!(S.dias[d]&&S.dias[d].glic&&S.dias[d].glic.jejum!=null))d=addDays(d,-1);
+  while(S.dias[d]&&S.dias[d].glic&&S.dias[d].glic.jejum!=null){seq++;d=addDays(d,-1)}
+  return{total,saldo:total-gasto,seq,nivel:Math.floor(total/80),est:estagio(total)};
+}
+
+/* 8 estágios do jardim — calculados pelos pontos acumulados (nada novo é gravado) */
+const ESTAGIOS=[
+  {min:0,  nome:'Broto',            em:'🌱'},
+  {min:50, nome:'Planta pequena',   em:'🪴'},
+  {min:110,nome:'Planta crescendo', em:'🌿'},
+  {min:180,nome:'Botão',            em:'🌷'},
+  {min:280,nome:'Primeira flor',    em:'🌸'},
+  {min:420,nome:'Mais flores',      em:'🌸🌸'},
+  {min:600,nome:'Flores e borboleta',em:'🦋'},
+  {min:850,nome:'Jardim completo',  em:'🌺'}
+];
+function estagio(total){let i=0;ESTAGIOS.forEach((e,j)=>{if(total>=e.min)i=j});return{n:i+1,...ESTAGIOS[i],prox:ESTAGIOS[i+1]||null}}
+
+/* ---------- cuidado: a plantinha fica com sede, sem culpa ---------- */
+function temRegistro(o){return !!o&&(Object.keys(o.glic||{}).length||(o.refeicoes||[]).length||(o.insulina||[]).length||o.agua||(o.atividade||[]).length||o.peso||Object.values(o.vitaminas||{}).some(Boolean))}
+function cuidado(){
+  const ini=S.config.inicio||hoje(),t=hoje();
+  const conta=f=>{if(f(S.dias[t]))return 0;let n=0,d=addDays(t,-1);while(d>=ini&&!f(S.dias[d])){n++;d=addDays(d,-1)}return n};
+  const semAt=conta(o=>o&&(o.atividade||[]).length>0),semReg=conta(temRegistro);
+  const dias=Math.max(semAt,semReg);
+  return{semAt,semReg,murcha:dias>=2,grau:dias>=4?2:1,motivo:semReg>=2?'registro':'atividade',dias};
+}
+
+/* ---------- desenho da planta por estágio (1..8) ---------- */
+const FORMA=[null,
+  {lv:0, top:'broto'},
+  {lv:2, top:'broto'},
+  {lv:4, top:'broto'},
+  {lv:5, top:'botao'},
+  {lv:6, top:'flor'},
+  {lv:9, top:'flor',mini:1},
+  {lv:11,top:'flor',mini:2,borb:1},
+  {lv:14,top:'flor',mini:2,borb:1,jardim:1,brilho:1}
+];
+function planta(stage,size,est){
+  stage=Math.max(1,Math.min(8,stage|0||1));
+  est=est||cuidado();const m=est.murcha,g=est.grau;const F=FORMA[stage];
+  const lv=F.lv,H=24+lv*3.4;
+  const C={leaf:m?'#A3A15E':'#5DBB8A',leafDk:m?'#838148':'#3F9A6C',stem:m?'#8E8C52':'#4FA878',pet:m?'#CDA9B8':'#F4A6C6',petDk:m?'#B4919F':'#E27FA8',mid:m?'#D9C27A':'#F7C948'};
+  const P0=[60,96];let P1,P2,P3;
+  if(!m){P1=[54,96-H*.35];P2=[66,96-H*.7];P3=[60,96-H]}
+  else if(g===1){P1=[58,96-H*.4];P2=[60+H*.1,96-H*.95];P3=[60+H*.35,96-H*.78]}
+  else{P1=[58,96-H*.4];P2=[60+H*.25,96-H*1.0];P3=[60+H*.5,96-H*.55]}
+  const bz=t=>{const u=1-t;return[0,1].map(k=>u*u*u*P0[k]+3*u*u*t*P1[k]+3*u*t*t*P2[k]+t*t*t*P3[k])};
+  const n=Math.min(1+Math.floor(lv/2),6),ang=!m?-32:(g===1?35:62);
+  let leaves='',extra=[];
+  for(let i=0;i<n;i++){
+    const t=.22+i*(.6/n),[x,y]=bz(t),side=i%2?-1:1,sc=.75+.25*(1-i/n);
+    leaves+=`<g transform="translate(${x.toFixed(1)},${y.toFixed(1)}) scale(${side*sc},${sc}) rotate(${ang})"><path d="M0 0 C5 -9 16 -10 23 -3 C16 3 6 4 0 0Z" fill="${C.leaf}"/><path d="M1 0 Q11 -3 20 -3" stroke="${C.leafDk}" stroke-width="1" fill="none" stroke-linecap="round"/></g>`;
+    const r=ang*Math.PI/180;extra.push([x+side*sc*21*Math.cos(r),y+sc*21*Math.sin(r)]);
+  }
+  const flor=(x,y,s,rot,c1,c2)=>`<g transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${rot}) scale(${s})">${[0,1,2,3,4].map(k=>`<ellipse cx="0" cy="-8.5" rx="5.8" ry="8.5" fill="${k%2?(c2||C.petDk):(c1||C.pet)}" transform="rotate(${k*72})"/>`).join('')}<circle r="5.2" fill="${C.mid}"/><circle cx="-1.6" cy="-1.6" r="1.5" fill="#fff" opacity=".6"/></g>`;
+  let topo='';const rot=!m?0:(g===1?55:100);
+  if(F.top==='flor')topo=flor(P3[0],P3[1],.75+Math.min(lv-4,10)*.035,rot);
+  else if(F.top==='botao')topo=`<g transform="translate(${P3[0]},${P3[1]}) rotate(${rot})"><ellipse cx="0" cy="-5" rx="4" ry="6.5" fill="${C.pet}"/><path d="M-4.5 0 Q0 -5 4.5 0 Q0 2 -4.5 0Z" fill="${C.leaf}"/></g>`;
+  else topo=`<g transform="translate(${P3[0]},${P3[1]}) rotate(${rot})"><path d="M0 0 C-3 -6 -10 -7 -12 -3 C-8 0 -3 1 0 0Z" fill="${C.leaf}"/><path d="M0 0 C3 -6 10 -7 12 -3 C8 0 3 1 0 0Z" fill="${C.leaf}"/></g>`;
+  let mini='';
+  if(!m&&F.mini>=1&&extra[n-2])mini+=flor(extra[n-2][0],extra[n-2][1],.42,-20);
+  if(!m&&F.mini>=2&&extra[n-3])mini+=flor(extra[n-3][0],extra[n-3][1],.4,15);
+  const star=(x,y,r)=>`<path d="M${x} ${y-r} Q${x} ${y} ${x+r} ${y} Q${x} ${y} ${x} ${y+r} Q${x} ${y} ${x-r} ${y} Q${x} ${y} ${x} ${y-r}Z" fill="#F7C948"/>`;
+  const brilho=!m&&F.brilho?star(26,38,5)+star(96,28,4)+star(92,60,3):'';
+  const borb=!m&&F.borb?`<g transform="translate(94,44) rotate(-12)"><ellipse cx="-5" cy="-3" rx="5.5" ry="4" fill="#9CC8F2"/><ellipse cx="5" cy="-3" rx="5.5" ry="4" fill="#B9A3F0"/><ellipse cx="-4" cy="3" rx="3.6" ry="2.8" fill="#B9A3F0"/><ellipse cx="4" cy="3" rx="3.6" ry="2.8" fill="#9CC8F2"/><rect x="-.8" y="-5" width="1.6" height="10" rx=".8" fill="#4A2A1F"/></g>`:'';
+  const tufo=(x,s)=>`<g transform="translate(${x},129) scale(${s})"><path d="M-6 0 Q-5 -9 -2 -12 Q-2 -6 0 0Z M0 0 Q1 -11 4 -14 Q4 -7 5 0Z M5 0 Q8 -7 11 -8 Q9 -3 9 0Z" fill="${C.leaf}"/></g>`;
+  const jardim=F.jardim?tufo(18,1)+tufo(100,1)+(m?'':flor(14,114,.45,10,'#F7B2A0','#EE8C78')+flor(106,112,.45,-15,'#F9D98A','#F2C14E')+flor(24,120,.32,0)):'';
+  const olhos=!m?`<circle cx="51" cy="111" r="2.3" fill="#4A2A1F"/><circle cx="69" cy="111" r="2.3" fill="#4A2A1F"/><circle cx="51.8" cy="110.2" r=".7" fill="#fff"/><circle cx="69.8" cy="110.2" r=".7" fill="#fff"/>`
+    :`<path d="M48.5 111 q2.5 2.2 5 0 M66.5 111 q2.5 2.2 5 0" stroke="#4A2A1F" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+  const boca=!m?`<path d="M56.5 116 q3.5 3.6 7 0" stroke="#4A2A1F" stroke-width="1.6" fill="none" stroke-linecap="round"/>`:`<path d="M56.5 119 q3.5 -3 7 0" stroke="#4A2A1F" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+  const gota=m?`<path d="M95 94 C92 99 91 101 91 103 a4 4 0 0 0 8 0 C99 101 98 99 95 94Z" fill="#8CC8F0"/>`:'';
+  return `<svg width="${size}" height="${size}" viewBox="0 0 120 132" role="img" aria-label="${m?'Plantinha com sede':'Plantinha: '+ESTAGIOS[stage-1].nome}">
+    ${brilho}${jardim}
+    <path d="M${P0} C${P1} ${P2} ${P3}" stroke="${C.stem}" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+    ${leaves}${mini}${topo}${borb}
+    <path d="M34 97 H86 L80.5 125 Q79.5 129 75.5 129 H44.5 Q40.5 129 39.5 125Z" fill="#D9895B"/>
+    <rect x="30" y="90" width="60" height="10" rx="5" fill="#E8A077"/>
+    <ellipse cx="60" cy="91.5" rx="25" ry="2.6" fill="#6B4430"/>
+    ${olhos}${!m?'<ellipse cx="45" cy="116" rx="3.6" ry="2.1" fill="#F29B9B" opacity=".75"/><ellipse cx="75" cy="116" rx="3.6" ry="2.1" fill="#F29B9B" opacity=".75"/>':''}${boca}${gota}
+  </svg>`;
+}
+
+/* ---------- gestação ---------- */
+function totalDiasGest(data){const r=S.config.gestRef;return r.semanas*7+diffDias(r.data,data||hoje())}
+function semanaAtual(){const tot=totalDiasGest();return{s:Math.floor(tot/7),d:((tot%7)+7)%7,tot}}
+function semanaDe(data){return Math.floor(totalDiasGest(data)/7)}
+function inicioSemana(sem){const r=S.config.gestRef;return addDays(r.data,sem*7-r.semanas*7)}
+function trimestre(s){return s<14?1:s<28?2:3}
+function dpp(){return addDays(hoje(),280-semanaAtual().tot)}
+/* Informação GERAL por semana (médias aproximadas; não é dado individual) */
+const BEBE={4:['uma semente de papoula','menos de 1 cm',''],5:['uma semente de gergelim','cerca de 0,3 cm',''],6:['uma lentilha','cerca de 0,6 cm',''],7:['um mirtilo','cerca de 1,3 cm',''],
+ 8:['uma framboesa','cerca de 1,6 cm','1 g'],9:['uma azeitona','cerca de 2,3 cm','2 g'],10:['um morango','cerca de 3 cm','4 g'],11:['um figo','cerca de 4 cm','7 g'],12:['um limão','cerca de 5 cm','14 g'],
+ 13:['um pêssego','cerca de 7 cm','23 g'],14:['um limão-siciliano','cerca de 9 cm','43 g'],15:['uma maçã','cerca de 10 cm','70 g'],16:['um abacate','cerca de 12 cm','100 g'],17:['uma pera','cerca de 13 cm','140 g'],
+ 18:['um pimentão','cerca de 14 cm','190 g'],19:['uma manga','cerca de 15 cm','240 g'],20:['uma banana','cerca de 25 cm (da cabeça aos pés)','300 g'],21:['uma cenoura','cerca de 27 cm','360 g'],
+ 22:['um mamão papaia','cerca de 28 cm','430 g'],23:['uma toranja','cerca de 29 cm','500 g'],24:['uma espiga de milho','cerca de 30 cm','600 g'],25:['uma couve-flor','cerca de 35 cm','660 g'],
+ 26:['um pé de alface','cerca de 36 cm','760 g'],27:['um repolho pequeno','cerca de 37 cm','875 g'],28:['uma berinjela','cerca de 38 cm','1 kg'],29:['uma abóbora moranga','cerca de 39 cm','1,15 kg'],
+ 30:['um repolho grande','cerca de 40 cm','1,3 kg'],31:['um coco','cerca de 41 cm','1,5 kg'],32:['um abacaxi pequeno','cerca de 42 cm','1,7 kg'],33:['um abacaxi','cerca de 44 cm','1,9 kg'],
+ 34:['um melão','cerca de 45 cm','2,1 kg'],35:['um melão grande','cerca de 46 cm','2,4 kg'],36:['um mamão formosa','cerca de 47 cm','2,6 kg'],37:['um maço de acelga','cerca de 49 cm','2,9 kg'],
+ 38:['uma abóbora','cerca de 50 cm','3,1 kg'],39:['uma melancia pequena','cerca de 51 cm','3,3 kg'],40:['uma melancia','cerca de 51 cm','3,4 kg']};
+function notaSemana(s){
+  if(s<13)return'No 1º trimestre, os órgãos principais do bebê estão se formando.';
+  if(s<20)return'Muitas gestantes começam a sentir os primeiros movimentos entre 16 e 25 semanas — cada gestação tem seu tempo.';
+  if(s<24)return'Metade da gestação! Em geral, é nesta fase que acontece o ultrassom morfológico.';
+  if(s<28)return'O bebê já costuma reagir a sons e vozes de quem está por perto.';
+  if(s<34)return'No 3º trimestre, o bebê ganha peso mais rapidamente.';
+  if(s<37)return'O bebê continua ganhando peso e amadurecendo.';
+  return'Gestação a termo: o momento do nascimento é acompanhado pela sua equipe.';
+}
+const nomeBebe=()=>(S.config.nomeBebe||'').trim();
+
+/* =====================================================================
+   Análises locais (nada sai do aparelho): correlação refeição → glicemia,
+   estatísticas por período, descobertas e insights semanais.
+   Linguagem de ASSOCIAÇÃO, nunca de causa.
+   ===================================================================== */
+const MIN_PADRAO=3; // mínimo de ocorrências para mostrar um padrão
+
+function diasEntre(ini,fim){const out=[];let d=ini;let guard=0;while(d<=fim&&guard<4000){out.push(d);d=addDays(d,1);guard++}return out}
+function primeiraData(){const ks=Object.keys(S.dias).filter(isData).sort();return ks[0]||hoje()}
+
+/* Glicemia 2h correspondente a uma refeição (só café, almoço e jantar) */
+function posDaRefeicao(data,r){
+  const k=REF_POS[r&&r.tipo];if(!k)return null;
+  const o=S.dias[data];const v=o&&o.glic?o.glic[k]:null;
+  return{k,v:v==null?null:+v};
+}
+/* Histórico de combinações refeição → glicemia (apenas quando há as duas coisas) */
+function paresRefeicao(ini,fim){
+  const out=[];
+  Object.keys(S.dias).filter(d=>isData(d)&&(!ini||d>=ini)&&(!fim||d<=fim)).sort().reverse().forEach(d=>{
+    const o=S.dias[d];const g=o.glic||{};
+    ['cafe','almoco','jantar'].forEach(k=>{
+      if(g[k]==null)return;
+      const refs=(o.refeicoes||[]).map((r,i)=>({...r,_i:i})).filter(r=>r.tipo===POS_REF[k]);
+      if(!refs.length)return;
+      const comCarbo=refs.filter(r=>r.carbo!=null);
+      out.push({d,k,v:+g[k],refs,desc:refs.map(r=>r.desc).join(' + '),carbo:comCarbo.length?comCarbo.reduce((a,r)=>a+(+r.carbo||0),0):null,fotoId:(refs.find(r=>r.fotoId)||{}).fotoId||null});
+    });
+  });
+  return out;
+}
+
+/* Estatísticas de um período */
+function statsPeriodo(ini,fim){
+  const ds=diasEntre(ini,fim);const por={};
+  GL.forEach(([k])=>por[k]={vals:[],datas:[]});
+  let agua=0,ativ=0,vit=0,diasReg=0;const vs=S.config.vitaminas;
+  ds.forEach(d=>{const o=S.dias[d];if(!o)return;
+    if(temRegistro(o))diasReg++;
+    GL.forEach(([k])=>{const v=o.glic&&o.glic[k];if(v!=null&&v!==''){por[k].vals.push(+v);por[k].datas.push(d)}});
+    if((o.agua||0)>=S.config.metaAgua)agua++;
+    if((o.atividade||[]).length)ativ++;
+    if(vs.length&&vs.every(v=>o.vitaminas&&o.vitaminas[v]))vit++;
+  });
+  const res={ini,fim,nDias:ds.length,diasReg,agua,ativ,vit,por:{},n:0,nMeta:0};
+  GL.forEach(([k])=>{const a=por[k].vals;const ok=a.filter(v=>naMeta(k,v)).length;
+    res.por[k]={n:a.length,ok,pct:a.length?Math.round(ok/a.length*100):null,media:arred(media(a)),min:a.length?Math.min(...a):null,max:a.length?Math.max(...a):null,vals:a,datas:por[k].datas};
+    res.n+=a.length;res.nMeta+=ok;});
+  res.pct=res.n?Math.round(res.nMeta/res.n*100):null;
+  const pos=['cafe','almoco','jantar'];res.posN=pos.reduce((a,k)=>a+res.por[k].n,0);res.posOk=pos.reduce((a,k)=>a+res.por[k].ok,0);
+  return res;
+}
+/* Últimas N medições de um horário, independentemente da data */
+function ultimasMedicoes(k,N){
+  const out=[];Object.keys(S.dias).filter(isData).sort().reverse().forEach(d=>{const v=S.dias[d].glic&&S.dias[d].glic[k];if(v!=null&&out.length<N)out.push({d,v:+v})});
+  return out;
+}
+function tendenciaJejum(){
+  const t=hoje();const a=statsPeriodo(addDays(t,-6),t).por.jejum,b=statsPeriodo(addDays(t,-13),addDays(t,-7)).por.jejum;
+  const r={atual:a.media,antes:b.media,nA:a.n,nB:b.n,dir:null,dif:null};
+  if(a.n>=MIN_PADRAO&&b.n>=MIN_PADRAO){r.dif=a.media-b.media;r.dir=Math.abs(r.dif)<2?'estavel':r.dif>0?'sobe':'desce'}
+  return r;
+}
+
+/* ---------- agrupamento de refeições semelhantes ---------- */
+const semAcento=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+const ALIMENTOS=[
+  ['arroz',/\barroz/],['feijão',/\bfeij/],['frango',/\bfrango|\bgalinha|\bpeito de frango/],['carne',/\bcarne|\bbife|\bpatinho|\bmusculo|\balcatra|\bfile mignon|\bmoida/],
+  ['peixe',/\bpeixe|\btilapia|\bsalmao|\batum|\bsardinha|\bmerluza/],['ovo',/\bovo|\bomelete/],['salada',/\bsalada|\balface|\btomate|\bpepino|\brucula|\bfolhas/],
+  ['legumes',/\blegume|\bcenoura|\babobrinha|\bbrocolis|\bchuchu|\bvagem|\bbeterraba|\babobora|\bcouve/],['pão',/\bpao|\btorrada|\bsanduiche/],['tapioca',/\btapioca/],['cuscuz',/\bcuscuz/],
+  ['macarrão',/\bmacarr|\bmassa\b|\bespaguete|\blasanha|\bnhoque/],['batata/mandioca',/\bbatata|\bpure\b|\bmandioca|\baipim|\binhame|\bmacaxeira/],['café com leite',/\bcafe com leite|\bcafe c\/ leite/],
+  ['café',/\bcafe\b(?! com leite)/],['iogurte',/\biogurte/],['queijo',/\bqueijo|\brequeijao|\bricota/],['fruta',/\bfruta|\bbanana|\bmaca\b|\bmamao|\blaranja|\bpera\b|\bmorango|\bmelao|\babacate|\buva|\bmanga\b|\bkiwi|\bmelancia/],
+  ['aveia/chia',/\baveia|\bchia|\bgranola|\blinhaca/],['castanhas',/\bcastanha|\bnoz|\bamendoa|\bamendoim/],['leguminosas',/\blentilha|\bgrao de bico|\bgrao-de-bico|\bervilha/],
+  ['sopa',/\bsopa|\bcaldo/],['farofa',/\bfarofa/],['polenta',/\bpolenta/],['leite',/\bleite\b/]
+];
+function chaveRefeicao(desc){
+  const t=semAcento(desc).replace(/\([^)]*\)/g,' ');
+  let achados=ALIMENTOS.filter(([,re])=>re.test(t)).map(([n])=>n);
+  if(achados.includes('café com leite'))achados=achados.filter(n=>n!=='café'&&n!=='leite');
+  if(!achados.length){const w=t.replace(/[^a-z ]/g,' ').split(/\s+/).filter(x=>x.length>2&&!['com','sem','uma','umas','uns','colher','colheres','copo','fatia','fatias','porcao','sopa','cha'].includes(x));if(!w.length)return null;achados=w.slice(0,3)}
+  return[...new Set(achados)].sort().join(' + ');
+}
+function padroesRefeicao(){
+  const grupos={};
+  paresRefeicao().forEach(p=>{const ch=chaveRefeicao(p.desc);if(!ch)return;const id=p.k+'|'+ch;
+    (grupos[id]=grupos[id]||{k:p.k,chave:ch,vals:[],datas:[]});grupos[id].vals.push(p.v);grupos[id].datas.push(p.d)});
+  return Object.values(grupos).filter(g=>g.vals.length>=MIN_PADRAO).map(g=>{const ok=g.vals.filter(v=>naMeta(g.k,v)).length;return{...g,n:g.vals.length,ok,media:arred(media(g.vals)),pct:ok/g.vals.length}})
+    .sort((a,b)=>b.pct-a.pct||b.n-a.n);
+}
+const EMOJI_POS={cafe:'☕',almoco:'🥗',jantar:'🌙',jejum:'🌅'};
+
+/* =====================================================================
+   Gráficos simples em SVG (sem bibliotecas), legíveis no celular
+   ===================================================================== */
+const COR_SERIE={jejum:'var(--s-jejum)',cafe:'var(--s-cafe)',almoco:'var(--s-almoco)',jantar:'var(--s-jantar)'};
+const COR_CLASSE={ok:'var(--leaf)',high:'var(--amber)',low:'var(--danger)'};
+function periodoIni(per){return per==='tudo'?primeiraData():addDays(hoje(),-(per-1))}
+
+function chartLinha(k,pts,ini,fim){
+  if(!pts.length)return'<p class="muted">Sem medições nesse período. Os registros aparecem aqui assim que forem anotados. 🌱</p>';
+  const W=340,H=180,L=30,R=10,T=14,B=24,meta=metaDe(k);
+  const vs=pts.map(p=>p.v);let lo=Math.min(60,Math.floor((Math.min(...vs)-5)/10)*10),hi=Math.max(Math.ceil((meta+25)/10)*10,Math.ceil((Math.max(...vs)+5)/10)*10);
+  const span=Math.max(1,diffDias(ini,fim));
+  const x=d=>L+(diffDias(ini,d)/span)*(W-L-R),y=v=>T+(1-(v-lo)/(hi-lo))*(H-T-B);
+  const band=`<rect x="${L}" y="${y(meta)}" width="${W-L-R}" height="${Math.max(0,y(HIPO)-y(meta))}" fill="var(--leaf-soft)"/>`;
+  const grid=[lo,meta,hi].map(v=>`<text x="${L-4}" y="${y(v)+3}" font-size="9" text-anchor="end" fill="var(--muted)">${v}</text>`).join('');
+  const ml=`<line x1="${L}" x2="${W-R}" y1="${y(meta)}" y2="${y(meta)}" stroke="var(--leaf)" stroke-dasharray="4 4"/>`;
+  const linha=pts.length>1?`<polyline fill="none" stroke="${COR_SERIE[k]}" stroke-width="2" stroke-linejoin="round" points="${pts.map(p=>x(p.d).toFixed(1)+','+y(p.v).toFixed(1)).join(' ')}"/>`:'';
+  const r=pts.length>40?2.4:3.6;
+  const pontos=pts.map(p=>`<circle cx="${x(p.d).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="${r}" fill="${COR_CLASSE[classe(k,p.v)]}" stroke="var(--surface)" stroke-width="1"><title>${br(p.d)}: ${p.v}</title></circle>`).join('');
+  const xl=`<text x="${L}" y="${H-6}" font-size="9.5" fill="var(--muted)">${br(ini)}</text><text x="${W-R}" y="${H-6}" font-size="9.5" text-anchor="end" fill="var(--muted)">${br(fim)}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Gráfico de ${GL_CURTO[k]} de ${br(ini)} a ${br(fim)}">${band}${grid}${ml}${linha}${pontos}${xl}</svg>
+    <div class="legend"><span>┄ meta &lt; ${meta}</span><span><i style="background:var(--leaf)"></i>dentro da meta</span><span><i style="background:var(--amber)"></i>acima da meta</span><span><i style="background:var(--danger)"></i>abaixo de 70</span></div>`;
+}
+function pctBars(st){
+  return `<div class="pbars">${GL.map(([k])=>{const p=st.por[k];return `<div class="pb"><span>${{jejum:'Jejum',cafe:'Café',almoco:'Almoço',jantar:'Jantar'}[k]}</span><span class="track"><i style="width:${p.pct||0}%;background:${COR_SERIE[k]}"></i></span><span class="v">${p.n?p.pct+'%':'—'}<span class="tiny"> ${p.n?p.ok+'/'+p.n:''}</span></span></div>`}).join('')}</div>`;
+}
+
+/* =====================================================================
+   Telas
+   ===================================================================== */
+function pill(k,v){const c=classe(k,v);return c?`<span class="pill ${c}">${TXT_CLASSE[c]}</span>`:''}
+function linhaPos(data,r,i,comBotao){
+  const p=posDaRefeicao(data,r);if(!p)return'';
+  if(p.v!=null)return `<div class="pos">↓ 2h depois: <b>${p.v} mg/dL</b> ${pill(p.k,p.v)}</div>`;
+  if(data!==hoje())return `<div class="pos tiny">↓ Glicemia 2h depois não anotada</div>`;
+  const pend=(S.config.lembretes.pendentes||[]).find(x=>x.data===data&&x.tipo===p.k);
+  let b='';
+  if(comBotao){
+    if(pend)b=`<span class="pill wait">⏰ lembrete às ${new Date(pend.quando).toTimeString().slice(0,5)}</span>`;
+    else if(r.hora){const alvo=horaMais(r.hora,120);if(alvo>agoraHM())b=`<button class="ghost small" data-act="lembrar2h" data-i="${i}">⏰ Lembrar às ${alvo}</button>`}
+  }
+  return `<div class="pos"><span class="pill wait">↓ glicemia 2h: a anotar</span>${b}</div>`;
+}
+function horaMais(hm,min){const[h,m]=hm.split(':').map(Number);const t=Math.min(23*60+59,h*60+m+min);return pad(Math.floor(t/60))+':'+pad(t%60)}
+
+function cardBebe(compacto){
+  const sa=semanaAtual(),s=sa.s,info=BEBE[Math.max(4,Math.min(40,s))],nm=nomeBebe();
+  const rest=Math.max(0,280-sa.tot);
+  return `<section class="card baby">
+    <div class="babyrow"><div class="ic" aria-hidden="true">👶</div><div>
+      <div class="wk">Semana ${s}${sa.d?' + '+sa.d+'d':''}</div>
+      <div class="muted">${nm?esc(nm)+' está':'Seu bebê está'} crescendo junto com o jardim.</div></div></div>
+    <div class="tags"><span>${trimestre(s)}º trimestre</span><span>${rest?'faltam ~'+rest+' dias':'chegou a hora'}</span>${info&&s>=4?`<span>do tamanho de ${info[0]}</span>`:''}</div>
+    ${compacto?`<details><summary>Ver mais</summary>
+      ${info&&s>=4?`<p class="muted" style="margin:8px 0 4px">Em média, nesta semana: ${info[1]}${info[2]?' e '+info[2]:''}.</p>`:''}
+      <p class="muted" style="margin:4px 0">${notaSemana(s)}</p>
+      <p class="tiny" style="margin:4px 0 10px">Informações gerais da semana. Cada gestação é única — os dados do seu bebê vêm dos exames e da sua equipe. Data provável aproximada: ${brAno(dpp())}.</p>
+      <button class="ghost small" data-act="album">📖 Álbum da gestação</button></details>`:''}
+  </section>`;
+}
+
+function vHoje(){
+  const o=dia(S.sel);const g=o.glic;
+  const baixo=GL.some(([k])=>g[k]!=null&&g[k]<HIPO);
+  const agua=o.agua||0,meta=S.config.metaAgua;
+  const ativMin=o.atividade.reduce((a,b)=>a+(+b.min||0),0);
+  const ehHoje=S.sel===hoje();
+  const atras=ehHoje?lembretesAtrasados():[];
+  return `
+  <div class="daybar">
+    <button class="ghost small" data-act="dia" data-n="-1" aria-label="Dia anterior">‹</button>
+    <b>${ehHoje?'Hoje':br(S.sel)}</b>
+    <button class="ghost small" data-act="dia" data-n="1" aria-label="Próximo dia" ${S.sel>=hoje()?'disabled':''}>›</button>
+  </div>
+  ${ehHoje?cardBebe(true):''}
+  ${(()=>{const c=cuidado();return ehHoje&&c.murcha?`<div class="alert info">🥀 <b>Sua plantinha está com sede 🌱</b> ${c.motivo==='atividade'?`Há ${c.semAt} dias sem atividade registrada. Uma caminhada leve (se liberada pelo obstetra) já faz ela voltar a ficar bonita.`:`Há ${c.semReg} dias sem registros. Anotar qualquer cuidado de hoje já faz ela se recuperar.`}</div>`:''})()}
+  ${atras.map(x=>`<div class="alert info">⏰ Já passou das ${x.hora}: se ainda não mediu, é hora da <b>glicemia 2h após ${POS_REF[x.tipo].toLowerCase()}</b>.</div>`).join('')}
+  ${baixo?`<div class="alert danger"><b>Glicemia abaixo de 70.</b> Siga o plano que sua equipe médica passou para hipoglicemia e meça de novo. Se não melhorar ou houver mal-estar, procure atendimento.</div>`:''}
+  <section class="card"><h2>Glicemia</h2>
+    <div class="grid4">${GL.map(([k,n])=>`<div class="gbox ${classe(k,g[k])}"><label class="f" for="g_${k}">${n}</label><input id="g_${k}" type="number" inputmode="numeric" min="30" max="400" data-g="${k}" value="${g[k]??''}" placeholder="—"><div class="meta">meta &lt; ${metaDe(k)}</div></div>`).join('')}</div>
+  </section>
+  <section class="card"><h2>Insulina</h2>
+    <div class="row"><div><label class="f" for="insT">Tipo</label><input id="insT" value="${esc(S.config.insulinaPadrao)}"></div>
+    <div><label class="f" for="insU">Unidades</label><input id="insU" type="number" inputmode="decimal" min="0"></div>
+    <div><label class="f" for="insH">Hora</label><input id="insH" type="time"></div></div>
+    <button style="margin-top:10px;width:100%" data-act="addIns">Registrar dose</button>
+    <ul class="list">${o.insulina.map((x,i)=>`<li><span>${esc(x.hora||'')} · ${esc(x.tipo)} ${esc(x.un)} UI</span><button class="x" data-act="del" data-k="insulina" data-i="${i}" aria-label="Remover">×</button></li>`).join('')}</ul>
+    <p class="muted">A dose é sempre a que o endocrinologista definiu.</p>
+  </section>
+  <section class="card"><h2>Refeições${o.refeicoes.some(r=>r.carbo!=null)?` · ≈ ${o.refeicoes.reduce((a,r)=>a+(+r.carbo||0),0)} g carbo`:''}</h2>
+    <div class="row"><div class="nf" style="width:42%"><label class="f" for="refT">Refeição</label><select id="refT">${REF.map(r=>`<option ${r===S.ultRefT?'selected':''}>${r}</option>`).join('')}</select></div>
+    <div><label class="f" for="refD">O que comeu</label><input id="refD" placeholder="ex.: 1 pão integral, ovo, café"></div></div>
+    <button style="margin-top:10px;width:100%" data-act="addRef">Adicionar refeição</button>
+    <div class="row" style="margin-top:8px">${S.fotoBusy?'<button class="ghost" disabled>Analisando o prato…</button>':'<button class="ghost" data-act="foto">📷 Tirar foto</button><button class="ghost" data-act="galeria">🖼️ Da galeria</button>'}</div>
+    <input id="fotoIn" type="file" accept="image/*" capture="environment" hidden>
+    <input id="galIn" type="file" accept="image/*" hidden>
+    <ul class="list">${o.refeicoes.map((x,i)=>`<li><span class="refrow">${x.fotoId?`<img class="thumb" data-foto="${esc(x.fotoId)}" alt="">`:''}<span><b>${esc(x.tipo)}</b>${x.hora?` <span class="tiny">${esc(x.hora)}</span>`:''} · ${esc(x.desc)}${x.carbo!=null?`<br><span class="muted">≈ ${esc(x.carbo)} g de carboidrato · ${esc(x.kcal)} kcal</span>`:''}${x.dica?`<br><span class="muted">💡 ${esc(x.dica)}</span>`:''}${linhaPos(S.sel,x,i,true)}</span></span><button class="x" data-act="del" data-k="refeicoes" data-i="${i}" aria-label="Remover">×</button></li>`).join('')}</ul>
+    <p class="muted">A foto dá uma estimativa aproximada para entender o prato (precisa de internet). Não use para ajustar dose de insulina.</p>
+  </section>
+  <section class="card"><h2>Água · ${agua} de ${meta} copos</h2>
+    <div class="drops">${Array.from({length:meta},(_,i)=>`<button class="drop ${i<agua?'on':''}" data-act="agua" data-n="${i+1}" aria-label="${i+1} copos"><svg width="30" height="38" viewBox="0 0 30 38"><path d="M15 3 C9 13 5 19 5 25 a10 10 0 0 0 20 0 C25 19 21 13 15 3z"/></svg></button>`).join('')}</div>
+    <p class="muted">Cada gota é um copo de 250 ml.</p>
+  </section>
+  <section class="card"><h2>Atividade · ${ativMin} min</h2>
+    <div class="row"><div><label class="f" for="atT">Atividade</label><input id="atT" placeholder="Caminhada após o almoço"></div>
+    <div class="nf" style="width:90px"><label class="f" for="atM">Minutos</label><input id="atM" type="number" inputmode="numeric" min="1"></div></div>
+    <button style="margin-top:10px;width:100%" data-act="addAt">Adicionar atividade</button>
+    <ul class="list">${o.atividade.map((x,i)=>`<li><span>${esc(x.tipo)} · ${esc(x.min)} min</span><button class="x" data-act="del" data-k="atividade" data-i="${i}" aria-label="Remover">×</button></li>`).join('')}</ul>
+    <p class="muted">Só atividades liberadas pelo obstetra.</p>
+  </section>
+  <section class="card"><h2>Vitaminas</h2>
+    ${S.config.vitaminas.map(v=>`<label class="check"><input type="checkbox" data-vit="${esc(v)}" ${o.vitaminas[v]?'checked':''}> ${esc(v)}</label>`).join('')||'<p class="muted">Adicione as vitaminas na aba Eu.</p>'}
+  </section>
+  <section class="card"><h2>Peso</h2>
+    <label class="f" for="peso">Peso de hoje (kg)</label><input id="peso" type="number" inputmode="decimal" step="0.1" value="${o.peso??''}" placeholder="Uma vez por semana basta">
+  </section>
+  <p class="muted" style="text-align:center">Este dia vale ${pontosDia(o)} pontos no jardim.</p>`;
+}
+
+function vGlic(){
+  const ds=Object.keys(S.dias).filter(d=>isData(d)&&S.dias[d].glic&&Object.keys(S.dias[d].glic).length).sort().reverse();
+  const ult7=ds.filter(d=>d>addDays(hoje(),-7));
+  const j7=ult7.map(d=>S.dias[d].glic.jejum).filter(v=>v!=null);
+  const p7=ult7.flatMap(d=>['cafe','almoco','jantar'].map(k=>({k,v:S.dias[d].glic[k]}))).filter(x=>x.v!=null);
+  const jOk=j7.filter(v=>naMeta('jejum',v)).length,pOk=p7.filter(x=>naMeta(x.k,x.v)).length;
+  const per=S.glicPer,k=S.glicSerie,ini=periodoIni(per),fim=hoje();
+  const st=statsPeriodo(ini,fim),sp=st.por[k];
+  const pts=sp.datas.map((d,i)=>({d,v:sp.vals[i]}));
+  const nTab=S.histTudo?ds.length:Math.min(ds.length,14);
+  return `
+  <button style="width:100%;margin-top:10px" data-act="relatorio">📄 Gerar relatório da consulta</button>
+  <section class="card"><h2>Glicemia ao longo do tempo</h2>
+    <div class="seg" role="group" aria-label="Período">${[[7,'7 dias'],[14,'14 dias'],[30,'30 dias'],['tudo','Tudo']].map(([v,l])=>`<button data-act="gper" data-v="${v}" aria-pressed="${String(per)===String(v)}">${l}</button>`).join('')}</div>
+    <div class="seg" role="group" aria-label="Medição">${GL.map(([kk])=>`<button data-act="gser" data-v="${kk}" aria-pressed="${k===kk}">${GL_CURTO[kk]}</button>`).join('')}</div>
+    ${chartLinha(k,pts,ini,fim)}
+    ${sp.n?`<p class="tiny" style="margin:6px 0 0">${sp.n} medições · média ${sp.media} · menor ${sp.min} · maior ${sp.max} mg/dL</p>`:''}
+  </section>
+  <section class="card"><h2>% dentro da meta</h2>
+    <p class="tiny" style="margin:-6px 0 6px">${per==='tudo'?'Todo o período':'Últimos '+per+' dias'} · metas: jejum &lt; ${S.config.metas.jejum}, pós-refeição &lt; ${S.config.metas.pos}</p>
+    ${st.n?pctBars(st):'<p class="muted">Sem medições nesse período.</p>'}
+  </section>
+  <section class="card"><h2>Últimos 7 dias</h2>
+    <div class="grid4">
+      <div><div class="big">${j7.length?jOk+'/'+j7.length:'—'}</div><div class="muted">jejum na meta</div></div>
+      <div><div class="big">${p7.length?pOk+'/'+p7.length:'—'}</div><div class="muted">pós-refeição na meta</div></div>
+    </div>
+  </section>
+  <section class="card"><h2>Histórico</h2>
+    ${ds.length?`<div class="tbl"><table><thead><tr><th>Dia</th><th>Jejum</th><th>Café</th><th>Almoço</th><th>Jantar</th><th>Insulina</th></tr></thead><tbody>
+    ${ds.slice(0,nTab).map(d=>{const g=S.dias[d].glic,ins=(S.dias[d].insulina||[]).map(i=>i.un).join('+');return `<tr><td>${br(d)}</td>${GL.map(([kk])=>`<td class="${classe(kk,g[kk])}">${g[kk]??'–'}</td>`).join('')}<td>${ins||'–'}</td></tr>`}).join('')}
+    </tbody></table></div>
+    ${ds.length>14?`<button class="link" data-act="histTudo">${S.histTudo?'Mostrar menos':'Ver histórico completo ('+ds.length+' dias)'}</button>`:''}`:'<p class="muted">Nenhuma glicemia registrada ainda.</p>'}
+    <p class="muted">Verde está na meta, laranja acima. Para a consulta, o relatório em PDF organiza tudo.</p>
+  </section>`;
+}
+
+function vDesc(){
+  const t=hoje(),A=statsPeriodo(addDays(t,-6),t),B=statsPeriodo(addDays(t,-13),addDays(t,-7));
+  const tj=tendenciaJejum();
+  const cultivando='<p class="muted">Ainda estamos cultivando dados 🌱<br>Continue registrando suas refeições e glicemias para descobrir padrões.</p>';
+  const seta={sobe:'↑ subindo',desce:'↓ caindo',estavel:'→ estável'};
+  const semana=A.n?`
+    <div class="stat3"><div><div class="mid">${A.n}</div><div class="tiny">medições</div></div><div><div class="mid">${A.pct}%</div><div class="tiny">dentro da meta</div></div><div><div class="mid">${A.diasReg}/7</div><div class="tiny">dias com registro</div></div></div>
+    <details><summary>Ver detalhes da semana</summary>
+      <div class="kv"><span>🌅 Jejum</span><b>${A.por.jejum.n?A.por.jejum.ok+'/'+A.por.jejum.n+' na meta':'—'}</b></div>
+      <div class="kv"><span>🍽️ Pós-refeições</span><b>${A.posN?A.posOk+'/'+A.posN+' na meta':'—'}</b></div>
+      <div class="kv"><span>💧 Água</span><b>meta em ${A.agua}/7 dias</b></div>
+      <div class="kv"><span>🚶 Atividade</span><b>${A.ativ} ${A.ativ===1?'dia':'dias'}</b></div>
+      <div class="kv"><span>💊 Vitaminas</span><b>${A.vit}/7 dias completas</b></div>
+      ${A.por.jejum.n&&B.por.jejum.n?`<div class="kv"><span>Jejum médio</span><b>${B.por.jejum.media} → ${A.por.jejum.media} mg/dL</b></div>`:''}
+      ${B.n?`<div class="kv"><span>Dentro da meta</span><b>${B.pct}% → ${A.pct}%</b></div>`:''}
+      <p class="tiny" style="margin:8px 0 0">Comparação com os 7 dias anteriores. É um resumo dos seus registros, não um diagnóstico.</p>
+    </details>`:cultivando;
+  const jejum=tj.dir?`<div class="mid" style="color:var(--plum)">${tj.atual} mg/dL</div>
+      <p class="muted" style="margin:6px 0">Média dos últimos 7 dias · 7 dias anteriores: <b>${tj.antes} mg/dL</b></p>
+      <span class="pill ${tj.dir==='estavel'?'wait':tj.dir==='desce'?'ok':'high'}">${seta[tj.dir]}${tj.dir!=='estavel'?' '+Math.abs(tj.dif)+' mg/dL':''}</span>
+      <p class="tiny" style="margin:8px 0 0">Foi observada esta tendência nas medições registradas. Converse sobre ela com sua equipe na consulta.</p>`
+    :(tj.nA?`<div class="mid" style="color:var(--plum)">${tj.atual} mg/dL</div><p class="muted" style="margin:6px 0 0">Média dos últimos 7 dias (${tj.nA} medições). Para mostrar a tendência, precisamos de pelo menos ${MIN_PADRAO} medições em cada semana.</p>`:cultivando);
+  const refs=['cafe','almoco','jantar'].map(k=>{const u=ultimasMedicoes(k,7),ok=u.filter(x=>naMeta(k,x.v)).length;const nome={cafe:'Seu café da manhã',almoco:'Seu almoço',jantar:'Seu jantar'}[k];const curto={cafe:'o café',almoco:'o almoço',jantar:'o jantar'}[k];
+    return `<div class="kv" style="display:block"><b>${EMOJI_POS[k]} ${nome}</b><div class="muted" style="margin-top:2px">${u.length>=MIN_PADRAO?`${ok} das últimas ${u.length} medições após ${curto} ficaram dentro da meta.`:`Ainda poucas medições após ${curto} (${u.length}). Com ${MIN_PADRAO} ou mais, o padrão aparece aqui.`}</div></div>`}).join('');
+  const pad=padroesRefeicao(),bons=pad.filter(p=>p.pct>=.6).slice(0,6);
+  const funcionou=!pad.length?cultivando:!bons.length?'<p class="muted">Ainda não apareceu uma combinação com a maioria das medições dentro da meta. Continue registrando 🌱</p>':
+    bons.map(p=>`<div class="kv" style="display:block"><b>${EMOJI_POS[p.k]} ${esc(p.chave.charAt(0).toUpperCase()+p.chave.slice(1))}</b> <span class="tiny">· ${POS_REF[p.k].toLowerCase()}</span>
+      <div class="muted" style="margin-top:2px">Registrado ${p.n} vezes · ${p.ok}/${p.n} glicemias depois dentro da meta · média ${p.media} mg/dL</div></div>`).join('');
+  const pares=paresRefeicao(),nP=S.corrMais?30:5;
+  const hist=pares.length?pares.slice(0,nP).map(p=>`<div class="corr">${p.fotoId?`<img class="thumb" data-foto="${esc(p.fotoId)}" alt="">`:`<div class="thumb semfoto" style="font-size:1.4rem">${EMOJI_POS[p.k]}</div>`}
+      <div class="t"><b>${POS_REF[p.k]}</b> <span class="tiny">${SEM[parse(p.d).getDay()]} ${br(p.d)}</span><div class="clamp muted">${esc(p.desc)}</div>${p.carbo!=null?`<div class="tiny">≈ ${p.carbo} g de carboidrato</div>`:''}
+      <div class="pos">↓ 2h depois: <b>${p.v} mg/dL</b> ${pill(p.k,p.v)}</div></div></div>`).join('')+(pares.length>5?`<button class="link" data-act="corrMais">${S.corrMais?'Mostrar menos':'Ver mais combinações'}</button>`:'')
+    :'<p class="muted">Quando uma refeição (café, almoço ou jantar) e a glicemia 2h depois forem anotadas no mesmo dia, a combinação aparece aqui.</p>';
+  return `
+  <section class="card"><h2>🌱 Sua semana</h2>${semana}</section>
+  <section class="card"><h2>🌅 Jejum</h2>${jejum}</section>
+  <section class="card"><h2>Após as refeições</h2>${refs}</section>
+  <section class="card"><h2>✨ O que funcionou bem para mim?</h2>${funcionou}
+    <p class="tiny" style="margin:10px 0 0">Combinações que apareceram pelo menos ${MIN_PADRAO} vezes nos seus registros. Mostram o que foi observado nessas ocasiões — não que um alimento seja “bom” ou “ruim”. Porção, horário, sono, atividade e outros fatores também influenciam.</p></section>
+  <section class="card"><h2>Refeição → glicemia</h2>${hist}</section>
+  <p class="tiny" style="text-align:center">Descobertas são calculadas no próprio celular, com base nas suas metas (jejum &lt; ${S.config.metas.jejum}, pós &lt; ${S.config.metas.pos}). Não substituem a avaliação da sua equipe.</p>`;
+}
+
+function vCoach(){
+  return `
+  <div class="alert info">Coach de alimentação e hábitos. Ela ajuda com cardápio e rotina, mas não mexe em insulina nem em remédios: isso é só com a sua equipe médica.<br><span class="tiny">Precisa de internet. Envia só a pergunta e um resumo dos últimos 7 dias.</span></div>
+  <div class="quick">
+    <button class="ghost small" data-q="Monte um cardápio para hoje, com 6 refeições, pensando no meu jejum.">Cardápio de hoje</button>
+    <button class="ghost small" data-q="O que é uma boa ceia para ajudar a glicemia de jejum?">Ideias de ceia</button>
+    <button class="ghost small" data-q="Analise minha última semana e me dê 3 ajustes simples de hábito.">Analisar minha semana</button>
+    <button class="ghost small" data-q="Me dê opções de lanche da tarde práticos para levar na bolsa.">Lanches práticos</button>
+  </div>
+  <div class="chat" id="chat">${S.chat.map(m=>`<div class="bub ${m.role==='user'?'u':'a'}">${esc(m.content)||'Pensando…'}</div>`).join('')||'<p class="muted">Pergunte qualquer coisa sobre comida, rotina ou como montar o prato.</p>'}</div>
+  <div class="row" style="margin-top:12px"><div><label class="f" for="cq">Sua pergunta</label><textarea id="cq" rows="2" placeholder="Posso comer tapioca no café?"></textarea></div><button class="nf" data-act="ask" ${S.busy?'disabled':''}>Enviar</button></div>`;
+}
+
+function vPremios(){
+  const t=totais(),e=t.est;const faltam=e.prox?e.prox.min-t.total:0;
+  const base=e.min,topo=e.prox?e.prox.min:e.min,pct=e.prox?Math.round((t.total-base)/(topo-base)*100):100;
+  return `
+  <section class="card" style="text-align:center">
+    ${planta(e.n,160)}
+    <div class="stage" style="justify-content:center;width:100%">${e.em} ${e.nome}</div>
+    <div class="tiny">estágio ${e.n} de 8</div>
+    <div class="big" style="margin-top:8px">${t.saldo} pontos</div>
+    <div class="muted">${t.total} pontos no total · ${t.seq} dias seguidos medindo o jejum</div>
+    <div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
+    <div class="muted" style="margin-top:4px">${e.prox?`${faltam} pontos para ${e.prox.em} ${e.prox.nome}`:'O jardim está completo! Continue cuidando dele 🌺'}</div>
+    <div style="margin-top:10px;font-size:1.25rem;letter-spacing:4px" aria-label="Estágios do jardim">${ESTAGIOS.map((x,i)=>`<span style="opacity:${i<e.n?1:.28}" title="${x.nome}">${x.em.slice(0,2)}</span>`).join('')}</div>
+    <p class="tiny" style="margin:10px 0 0">Cada cuidado faz o jardim crescer. O jardim mostra cuidado e constância — não o resultado da glicemia.</p>
+    <button class="ghost small" style="margin-top:10px" data-act="album">📖 Álbum da gestação</button>
+  </section>
+  <section class="card"><h2>Prêmios</h2>
+    ${S.config.premios.slice().sort((a,b)=>a.custo-b.custo).map(p=>S.editP===p.id?`<div class="reward" style="display:block">
+      <label class="f" for="eN">Prêmio</label><input id="eN" value="${esc(p.nome)}">
+      <div class="row" style="margin-top:8px"><div class="nf" style="width:110px"><label class="f" for="eC">Pontos</label><input id="eC" type="number" min="10" step="10" inputmode="numeric" value="${p.custo}"></div>
+      <button data-act="saveP" data-id="${p.id}">Salvar</button><button class="ghost" data-act="cancelP">Cancelar</button></div></div>`
+    :`<div class="reward"><div><div>${esc(p.nome)}</div><div class="cost">${p.custo} pontos</div></div>
+      <div class="row nf" style="gap:2px"><button class="small" data-act="resg" data-id="${p.id}" ${t.saldo<p.custo?'disabled':''}>Resgatar</button><button class="x" data-act="editP" data-id="${p.id}" aria-label="Editar prêmio">✏️</button><button class="x" data-act="delP" data-id="${p.id}" aria-label="Remover prêmio">×</button></div></div>`).join('')}
+    <div class="row" style="margin-top:10px"><div><label class="f" for="pN">Novo prêmio</label><input id="pN" placeholder="Jantar no restaurante preferido"></div><div class="nf" style="width:90px"><label class="f" for="pC">Pontos</label><input id="pC" type="number" min="10" inputmode="numeric"></div></div>
+    <button class="ghost" style="margin-top:10px;width:100%" data-act="addP">Adicionar prêmio</button>
+  </section>
+  <section class="card"><h2>Como ganhar pontos</h2>
+    <ul class="list">
+      <li><span>Cada glicemia medida</span><b>5</b></li>
+      <li><span>Dose de insulina registrada (até 2)</span><b>10</b></li>
+      <li><span>Refeição anotada (até 6)</span><b>3</b></li>
+      <li><span>Meta de água batida</span><b>10</b></li>
+      <li><span>20 min ou mais de atividade</span><b>10</b></li>
+      <li><span>Todas as vitaminas</span><b>5</b></li>
+      <li><span>Peso registrado</span><b>5</b></li>
+      <li><span>Dia completo: jejum + 2 medições pós</span><b>10</b></li>
+    </ul>
+    <p class="muted">Os pontos premiam o cuidado, não o número da glicemia. Um valor alto num dia bem cuidado vale os mesmos pontos — e nenhum ponto é retirado.</p>
+  </section>
+  ${(S.config.resgates||[]).length?`<section class="card"><h2>Resgatados</h2><ul class="list">${S.config.resgates.slice().reverse().map(r=>`<li><span>${esc(r.nome)}</span><span class="muted">${br(r.data)}</span></li>`).join('')}</ul></section>`:''}`;
+}
+
+function vAlbum(){
+  const atual=semanaAtual().s;const ini=Math.max(1,Math.min(atual,semanaDe(S.config.inicio&&S.config.inicio<primeiraData()?S.config.inicio:primeiraData())));
+  const sems=[];for(let s=atual;s>=ini;s--)sems.push(s);
+  return `<div class="daybar"><button class="ghost small" data-act="voltar">‹ Voltar</button><b>Álbum da gestação</b><span style="width:60px"></span></div>
+  <p class="muted" style="margin:6px 4px">Uma página por semana: o jardim, os cuidados e as suas memórias. As anotações são só suas — ficam no celular e nunca são enviadas para a IA.</p>
+  ${sems.map(s=>{const a=inicioSemana(s),f=addDays(a,6)>hoje()?hoje():addDays(a,6);
+    const est=estagio(pontosAte(f)),st=statsPeriodo(a,f),ds=diasEntre(a,f);
+    const pSem=ds.reduce((x,d)=>x+(S.dias[d]?pontosDia(S.dias[d]):0),0);
+    const nReg=ds.reduce((x,d)=>{const o=S.dias[d];if(!o)return x;return x+Object.keys(o.glic||{}).length+(o.refeicoes||[]).length+(o.insulina||[]).length+(o.atividade||[]).length+(o.agua?1:0)+(o.peso?1:0)+Object.values(o.vitaminas||{}).filter(Boolean).length},0);
+    const posVals=['cafe','almoco','jantar'].flatMap(k=>st.por[k].vals);
+    const al=S.config.album[s]||{};const ed=S.albumEdit===s;
+    return `<section class="card"><div class="albumwk">
+      ${al.fotoId?`<img class="ph" data-foto="${esc(al.fotoId)}" data-vazio="📷" alt="Foto da semana ${s}">`:`<div class="ph" aria-hidden="true">${est.em.slice(0,2)}</div>`}
+      <div style="flex:1;min-width:0"><h2 style="margin:0">Semana ${s} ${est.em.slice(0,2)}</h2>
+        <div class="tiny">${br(a)} a ${br(f)} · ${est.nome}</div>
+        <div class="tags"><span>${pontosAte(f)} pontos</span><span>+${pSem} na semana</span><span>${nReg} registros</span></div>
+        <div class="tiny" style="margin-top:6px">${st.por.jejum.n?'Jejum médio '+st.por.jejum.media:''}${st.por.jejum.n&&posVals.length?' · ':''}${posVals.length?'Pós médio '+arred(media(posVals)):''}${!st.n?'Sem glicemias registradas':''}</div></div></div>
+      ${al.nota&&!ed?`<p style="margin:10px 0 0;white-space:pre-wrap">${esc(al.nota)}</p>`:''}
+      ${ed?`<label class="f" for="albNota" style="margin-top:10px">Memória da semana</label><textarea id="albNota" rows="3" placeholder="Ex.: senti o bebê mexer bastante hoje ❤️">${esc(al.nota||'')}</textarea>
+        <div class="btnrow"><button class="ghost small" data-act="albFoto" data-s="${s}">📷 Foto</button><button class="ghost small" data-act="albGal" data-s="${s}">🖼️ Galeria</button>${al.fotoId?`<button class="ghost small" data-act="albSemFoto" data-s="${s}">Remover foto</button>`:''}</div>
+        <div class="btnrow"><button data-act="albSalvar" data-s="${s}">Salvar</button><button class="ghost" data-act="albCancelar">Cancelar</button></div>`
+      :`<button class="link" data-act="albEditar" data-s="${s}">${al.nota||al.fotoId?'Editar memória':'＋ Adicionar foto ou memória'}</button>`}
+    </section>`}).join('')}
+  <input id="albIn" type="file" accept="image/*" capture="environment" hidden><input id="albGalIn" type="file" accept="image/*" hidden>`;
+}
+
+function vRelatorio(){
+  const per=S.relPer;const r=S.relPdf;
+  return `<div class="daybar"><button class="ghost small" data-act="voltar">‹ Voltar</button><b>Relatório da consulta</b><span style="width:60px"></span></div>
+  <section class="card"><h2>Período</h2>
+    <div class="seg" role="group">${[[7,'Últimos 7 dias'],[14,'Últimos 14 dias'],[30,'Últimos 30 dias'],['custom','Personalizado']].map(([v,l])=>`<button data-act="rper" data-v="${v}" aria-pressed="${String(per)===String(v)}">${l}</button>`).join('')}</div>
+    ${per==='custom'?`<div class="row"><div><label class="f" for="rIni">De</label><input id="rIni" type="date" value="${S.relIni||addDays(hoje(),-13)}" max="${hoje()}"></div><div><label class="f" for="rFim">Até</label><input id="rFim" type="date" value="${S.relFim||hoje()}" max="${hoje()}"></div></div>`:''}
+    <label class="f" for="rObs" style="margin-top:12px">Observações para a consulta (opcional)</label>
+    <textarea id="rObs" rows="4" placeholder="Dúvidas, sintomas, o que quer conversar com a equipe…">${esc(S.config.relObs||'')}</textarea>
+    <button style="width:100%;margin-top:12px" data-act="gerarRel">Gerar relatório (PDF)</button>
+    <p class="tiny" style="margin:8px 0 0">O PDF é montado no próprio celular, sem internet. Inclui glicemias, gráficos, insulina, peso e suas observações. As fotos e o álbum não entram.</p>
+  </section>
+  ${r?`<section class="card"><h2>✓ Relatório pronto</h2><p class="muted" style="margin-top:-4px">${esc(r.nome)}</p>
+    <div class="btnrow"><button data-act="relAbrir">Visualizar</button><button class="ghost" data-act="relBaixar">Baixar</button>${podeCompartilharArquivo(r)?'<button class="ghost" data-act="relComp">Compartilhar</button>':''}</div>
+    <p class="tiny" style="margin:8px 0 0">No Android, “Compartilhar” permite enviar por WhatsApp, e-mail ou salvar no Drive.</p></section>`:''}`;
+}
+
+function vEu(){
+  const pesos=Object.keys(S.dias).filter(d=>S.dias[d].peso).sort().map(d=>[d,S.dias[d].peso]);
+  const ult=pesos.length?pesos[pesos.length-1][1]:null;const c=S.config;const sa=semanaAtual();const L=c.lembretes;
+  const perm=('Notification' in window)?Notification.permission:'indisponivel';
+  const sw=(k,rot,hora)=>`<div class="sw"><input type="checkbox" id="lb_${k}" data-lemb="${k}" ${L[k].on?'checked':''} ${L.ativo?'':'disabled'}><label class="lab" for="lb_${k}">${rot}</label>${hora?`<input type="time" data-lembh="${k}" value="${esc(L[k].hora)}" aria-label="Horário" ${L.ativo?'':'disabled'}>`:''}</div>`;
+  return `
+  <section class="card"><h2>Peso</h2>
+    <label class="f" for="pesoPre">Peso antes da gravidez (kg)</label><input id="pesoPre" type="number" step="0.1" inputmode="decimal" value="${c.pesoPre??''}">
+    ${ult&&c.pesoPre?`<p><b>${(ult-c.pesoPre).toFixed(1)} kg</b> de ganho até agora. O ganho ideal é o que o obstetra indicar para ela.</p>`:''}
+    <ul class="list">${pesos.slice().reverse().slice(0,12).map(p=>`<li><span>${br(p[0])}</span><b>${p[1]} kg</b></li>`).join('')||'<li class="muted">Registre o peso na aba Hoje.</li>'}</ul>
+  </section>
+  <section class="card"><h2>Metas de glicemia</h2>
+    <div class="row"><div><label class="f" for="mJej">Jejum abaixo de (mg/dL)</label><input id="mJej" type="number" inputmode="numeric" min="60" max="200" value="${c.metas.jejum}"></div>
+    <div><label class="f" for="mPos">Pós-refeição abaixo de (mg/dL)</label><input id="mPos" type="number" inputmode="numeric" min="60" max="250" value="${c.metas.pos}"></div></div>
+    <button class="ghost" style="width:100%;margin-top:10px" data-act="saveMetas">Salvar metas</button>
+    <p class="tiny" style="margin:8px 0 0">Essas metas devem seguir a orientação da sua equipe médica. Elas servem para acompanhamento e cores dos gráficos — não mudam pontos, nem doses.</p>
+  </section>
+  <section class="card"><details ${S.abrirLemb?'open':''}><summary>⏰ Lembretes</summary>
+    <div class="sw"><input type="checkbox" id="lbAtivo" data-lemb="ativo" ${L.ativo?'checked':''}><label class="lab" for="lbAtivo"><b>Usar lembretes</b></label></div>
+    ${sw('jejum','Glicemia de jejum',true)}
+    ${sw('cafe','Glicemia após o café (2h depois de registrar)')}
+    ${sw('almoco','Glicemia após o almoço (2h depois de registrar)')}
+    ${sw('jantar','Glicemia após o jantar (2h depois de registrar)')}
+    ${sw('vitaminas','Vitaminas',true)}
+    ${sw('agua','Água (até 3 lembretes suaves por dia, só se a meta ainda não foi batida)')}
+    <p class="tiny" style="margin:8px 0 0">${perm==='granted'?'Notificações permitidas.':perm==='denied'?'As notificações estão bloqueadas no Android. Libere em Configurações → Apps → Nosso Jardim → Notificações.':perm==='indisponivel'?'Este aparelho não oferece notificações para o app; os lembretes aparecem dentro do app.':'Ao ligar, o Android vai pedir permissão para notificações.'}
+    Os lembretes funcionam com o app aberto ou usado recentemente; o Android pode encerrar apps em segundo plano. Cada lembrete aparece no máximo uma vez por dia e some quando o registro é feito.</p>
+    ${L.ativo?`<button class="ghost small" style="margin-top:8px" data-act="testeNotif">Testar notificação</button>`:''}
+  </details></section>
+  <section class="card"><details ${S.abrirBackup?'open':''}><summary>📦 Dados e backup</summary>
+    <p class="muted" style="margin:8px 0">Seus registros ficam só neste celular. Um backup guarda tudo em um arquivo: glicemias, insulina, refeições e estimativas, água, atividades, vitaminas, peso, pontos, prêmios e resgates, jardim, álbum, lembretes, metas e configurações.</p>
+    <label class="check"><input type="checkbox" id="bkFotos" ${S.bkSemFotos?'':'checked'}> Incluir fotos (refeições e álbum)</label>
+    <div class="btnrow"><button data-act="backup">📦 Criar backup</button><button class="ghost" data-act="restaurar">📥 Restaurar backup</button></div>
+    <input id="bkIn" type="file" accept=".json,application/json" hidden>
+    <p class="tiny" style="margin:8px 0 0">${c.ultimoBackup?'Último backup: '+brAno(c.ultimoBackup.slice(0,10)):'Nenhum backup feito ainda.'} Guarde o arquivo fora do celular (Drive, e-mail) — recomendação: uma vez por semana.</p>
+  </details></section>
+  <section class="card"><details><summary>🔒 Privacidade e internet</summary>
+    <div class="kv" style="display:block"><b>Funciona sem internet</b><div class="muted">Registros, pontos, jardim, gráficos, Descobertas, relatório em PDF, álbum, lembretes e backup. Tudo é calculado no celular.</div></div>
+    <div class="kv" style="display:block"><b>Precisa de internet</b><div class="muted">Coach: envia a pergunta e um resumo dos últimos 7 dias (glicemias, refeições, água, atividade, insulina registrada e metas). Foto do prato: envia só a foto reduzida do prato. O álbum, as memórias, o peso e o backup nunca são enviados.</div></div>
+    <p class="tiny" style="margin:8px 0 0">O coach e a análise de fotos usam o plano gratuito do Gemini (Google), que pode usar o conteúdo para melhorar os produtos dele. Evite fotos com rostos ou documentos.</p>
+  </details></section>
+  <section class="card"><h2>Ajustes</h2>
+    <label class="f" for="cSem">Semana de gestação hoje</label><input id="cSem" type="number" min="1" max="42" value="${sa.s}">
+    <label class="f" for="cBebe" style="margin-top:10px">Nome do bebê (opcional)</label><input id="cBebe" value="${esc(c.nomeBebe||'')}" placeholder="Aparece no card da semana">
+    <label class="f" for="cAgua" style="margin-top:10px">Meta de água (copos de 250 ml)</label><input id="cAgua" type="number" min="4" max="16" value="${c.metaAgua}">
+    <label class="f" for="cIns" style="margin-top:10px">Insulina padrão</label><input id="cIns" value="${esc(c.insulinaPadrao)}">
+    <label class="f" for="cVit" style="margin-top:10px">Vitaminas (separe por vírgula)</label><input id="cVit" value="${esc(c.vitaminas.join(', '))}">
+    <button style="margin-top:12px;width:100%" data-act="saveCfg">Salvar ajustes</button>
+  </section>
+  <p class="muted" style="text-align:center">${S.db?'Sincronizado na nuvem.':'Salvo neste aparelho.'} · versão ${APP_VERSAO}</p>`;
+}
+
+const SEM=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+function totDia(o){const rs=(o&&o.refeicoes)||[],est=rs.filter(r=>r.carbo!=null);return{n:rs.length,est:est.length,carbo:est.reduce((a,r)=>a+(+r.carbo||0),0),kcal:est.reduce((a,r)=>a+(+r.kcal||0),0)}}
+function vPratos(){
+  const N=S.pratosDias||14;const ds=[];for(let i=0;i<N;i++){const d=addDays(hoje(),-i);if(S.dias[d]&&(S.dias[d].refeicoes||[]).length)ds.push(d)}
+  const sete=[...Array(7)].map((_,i)=>addDays(hoje(),i-6)),vals=sete.map(d=>totDia(S.dias[d]).carbo),mx=Math.max(200,...vals);
+  const W=330,H=130,bw=30,gap=(W-20-bw*7)/6;
+  const chart=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Carboidratos estimados por dia na última semana">${sete.map((d,i)=>{const v=vals[i],bh=v?Math.max(4,v/mx*(H-40)):2,x=10+i*(bw+gap);return `<rect x="${x}" y="${H-22-bh}" width="${bw}" height="${bh}" rx="6" fill="${v?'var(--plum)':'var(--line)'}"/>${v?`<text x="${x+bw/2}" y="${H-27-bh}" text-anchor="middle" font-size="10" fill="var(--muted)">${v}</text>`:''}<text x="${x+bw/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--muted)">${SEM[parse(d).getDay()]}</text>`}).join('')}</svg>`;
+  let modal='';
+  if(S.modal){const o=S.dias[S.modal.d],r=o&&o.refeicoes[S.modal.i];if(r)modal=`<div class="modal" data-act="fechar"><div class="box">
+    ${r.fotoId?`<img data-foto="${esc(r.fotoId)}" alt="Foto do prato">`:''}
+    <h2>${esc(r.tipo)} · ${SEM[parse(S.modal.d).getDay()]} ${br(S.modal.d)}${r.hora?' · '+esc(r.hora):''}</h2>
+    <p>${esc(r.desc)}</p>
+    ${r.carbo!=null?`<p><b>≈ ${esc(r.carbo)} g de carboidrato</b> · ${esc(r.kcal)} kcal</p>`:''}
+    ${r.dica?`<p class="muted">💡 ${esc(r.dica)}</p>`:''}
+    ${linhaPos(S.modal.d,r,S.modal.i,false)}
+    <button class="ghost" style="width:100%;margin-top:12px" data-act="fechar">Fechar</button></div></div>`}
+  return `
+  <section class="card"><h2>Carboidratos por dia (estimados)</h2>${chart}
+    <p class="muted">Carboidrato é o que mais pesa na glicemia; as calorias aparecem só como referência. Tudo é estimativa pela foto.</p></section>
+  ${ds.length?ds.map(d=>{const o=S.dias[d],t=totDia(o);return `<section class="card">
+    <h2>${d===hoje()?'Hoje':SEM[parse(d).getDay()]+' '+br(d)}</h2>
+    <p class="muted" style="margin:-6px 0 10px">${t.est?`≈ ${t.carbo} g carbo · ${t.kcal} kcal`:'Sem estimativas'}${t.est&&t.est<t.n?` (em ${t.est} de ${t.n} refeições)`:''}</p>
+    <div class="pgrid">${o.refeicoes.map((r,i)=>{const p=posDaRefeicao(d,r);return `<button class="pcard" data-act="verPrato" data-d="${d}" data-i="${i}">
+      ${r.fotoId?`<img data-foto="${esc(r.fotoId)}" alt="">`:'<div class="semfoto">🍽️</div>'}
+      <div class="pt"><b>${esc(r.tipo)}</b><div class="clamp muted">${esc(r.desc)}</div>${r.carbo!=null?`<div>≈ ${esc(r.carbo)} g carbo</div>`:''}${p&&p.v!=null?`<div style="margin-top:4px">↓ ${p.v} <span class="pill ${classe(p.k,p.v)}">${classe(p.k,p.v)==='ok'?'✓':'•'}</span></div>`:''}</div></button>`}).join('')}</div>
+  </section>`}).join(''):'<section class="card"><p class="muted">Nenhuma refeição registrada nesses dias. Use 📷 na aba Hoje para começar o diário.</p></section>'}
+  <button class="ghost" style="width:100%;margin:6px 0 12px" data-act="maisDias">Ver dias anteriores</button>
+  <p class="muted" style="text-align:center">As fotos ficam guardadas só neste celular (e no backup, se você incluir).</p>
+  ${modal}`;
+}
+
+const TABS=[['hoje','Hoje','🌱'],['glic','Glicemia','🩸'],['desc','Descobertas','✨'],['pratos','Pratos','🍽️'],['coach','Coach','💬'],['premios','Prêmios','🌸'],['eu','Eu','👤']];
+function render(){
+  const v=document.getElementById('view');
+  const ae=document.activeElement;
+  if(ae&&v.contains(ae)&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName)&&ae.type!=='checkbox'&&ae.type!=='file'){S.pendingRender=true;renderHeader();return}
+  S.pendingRender=false;
+  const fn=S.sub==='album'?vAlbum:S.sub==='relatorio'?vRelatorio:{hoje:vHoje,glic:vGlic,desc:vDesc,pratos:vPratos,coach:vCoach,premios:vPremios,eu:vEu}[S.tab];
+  v.innerHTML=fn()+vDialogo();hidratarFotos();
+  renderHeader();
+  document.getElementById('tabs').innerHTML=TABS.map(([k,n,i])=>`<button data-tab="${k}" aria-current="${S.tab===k&&!S.sub}"><span aria-hidden="true">${i}</span>${n}</button>`).join('');
+  const ch=document.getElementById('chat');if(ch)ch.scrollIntoView({block:'end'});
+}
+function renderHeader(){
+  const t=totais(),sa=semanaAtual();
+  document.getElementById('weekLbl').textContent=`Semana ${sa.s}${sa.d?' + '+sa.d+'d':''}`;
+  document.getElementById('plantSmall').innerHTML=`<span class="pbadge">${planta(t.est.n,40)}</span>`;
+  document.getElementById('chips').innerHTML=`<span class="chip">🌸 ${t.saldo} pontos</span><span class="chip">🔥 ${t.seq} dias seguidos</span>${cuidado().murcha?'<span class="chip">🥀 com sede</span>':''}`;
+}
+document.addEventListener('focusout',()=>setTimeout(()=>{if(S.pendingRender)render()},50));
+
+/* =====================================================================
+   Relatório em PDF gerado no próprio celular (sem bibliotecas, sem internet)
+   Mini-gerador de PDF: Helvetica/Helvetica-Bold, codificação WinAnsi.
+   ===================================================================== */
+const HW=[[278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 278, 278, 584, 584, 584, 556, 1015, 667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833, 722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 278, 278, 278, 469, 556, 333, 556, 556, 500, 556, 556, 278, 556, 556, 222, 222, 500, 222, 833, 556, 556, 556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334, 260, 334, 584, 761, 556, 556, 222, 556, 333, 1000, 556, 556, 333, 1000, 667, 333, 1000, 556, 611, 556, 556, 222, 222, 333, 333, 350, 556, 1000, 333, 1000, 500, 333, 944, 556, 500, 667, 278, 333, 556, 556, 556, 556, 260, 556, 333, 737, 370, 556, 584, 333, 737, 333, 400, 584, 333, 333, 333, 556, 537, 278, 333, 333, 365, 556, 834, 834, 834, 611, 667, 667, 667, 667, 667, 667, 1000, 722, 667, 667, 667, 667, 278, 278, 278, 278, 722, 722, 778, 778, 778, 778, 778, 584, 778, 722, 722, 722, 722, 667, 667, 611, 556, 556, 556, 556, 556, 556, 889, 500, 556, 556, 556, 556, 278, 278, 278, 278, 556, 556, 556, 556, 556, 556, 556, 584, 611, 556, 556, 556, 556, 500, 556, 500], [278, 333, 474, 556, 556, 889, 722, 238, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 333, 333, 584, 584, 584, 611, 975, 722, 722, 722, 722, 667, 611, 778, 722, 278, 556, 722, 611, 833, 722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 333, 278, 333, 584, 556, 333, 556, 611, 556, 611, 556, 333, 611, 611, 278, 278, 556, 278, 889, 611, 611, 611, 611, 389, 556, 333, 611, 556, 778, 556, 556, 500, 389, 280, 389, 584, 761, 556, 556, 278, 556, 500, 1000, 556, 556, 333, 1000, 667, 333, 1000, 556, 611, 556, 556, 278, 278, 500, 500, 350, 556, 1000, 333, 1000, 556, 333, 944, 556, 500, 667, 278, 333, 556, 556, 556, 556, 280, 556, 333, 737, 370, 556, 584, 333, 737, 333, 400, 584, 333, 333, 333, 611, 556, 278, 333, 333, 365, 556, 834, 834, 834, 611, 722, 722, 722, 722, 722, 722, 1000, 722, 667, 667, 667, 667, 278, 278, 278, 278, 722, 722, 778, 778, 778, 778, 778, 584, 778, 722, 722, 722, 722, 667, 667, 611, 556, 556, 556, 556, 556, 556, 889, 556, 556, 556, 556, 556, 278, 278, 278, 278, 611, 611, 611, 611, 611, 611, 611, 584, 611, 611, 611, 611, 611, 556, 611, 556]];
+const CP1252={0x20AC:128,0x201A:130,0x0192:131,0x201E:132,0x2026:133,0x2020:134,0x2021:135,0x02C6:136,0x2030:137,0x0160:138,0x2039:139,0x0152:140,0x017D:142,0x2018:145,0x2019:146,0x201C:147,0x201D:148,0x2022:149,0x2013:150,0x2014:151,0x02DC:152,0x2122:153,0x0161:154,0x203A:155,0x0153:156,0x017E:158,0x0178:159};
+function limparTxt(s){return String(s??'').replace(/≈/g,'~').replace(/→/g,'->').replace(/↓/g,'').replace(/↑/g,'').replace(/[✓✔]/g,'').replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu,'').replace(/\s{2,}/g,' ').trim()}
+function codes(s){const out=[];for(const ch of String(s)){const c=ch.codePointAt(0);if(c>=32&&c<=126||c>=160&&c<=255)out.push(c);else if(CP1252[c])out.push(CP1252[c]);else if(c===10||c===9)out.push(32);else out.push(63)}return out}
+function larg(s,size,bold){const w=HW[bold?1:0];return codes(s).reduce((a,c)=>a+(w[c-32]||556),0)/1000*size}
+function pdfStr(s){return '('+codes(s).map(c=>c===40||c===41||c===92?'\\'+String.fromCharCode(c):c<127?String.fromCharCode(c):'\\'+c.toString(8).padStart(3,'0')).join('')+')'}
+function quebrar(s,maxW,size,bold){const pal=limparTxt(s).split(' ');const ls=[];let l='';pal.forEach(p=>{const t=l?l+' '+p:p;if(larg(t,size,bold)<=maxW||!l)l=t;else{ls.push(l);l=p}});if(l)ls.push(l);return ls}
+
+class MiniPDF{
+  constructor(){this.W=595.28;this.H=841.89;this.pags=[];this.nova()}
+  nova(){this.c=[];this.pags.push(this.c)}
+  cor(rgb,f){return rgb.map(v=>v.toFixed(3)).join(' ')+(f?' rg':' RG')}
+  txt(x,y,s,o={}){const size=o.size||10,bold=!!o.bold;s=limparTxt(s);let X=x;if(o.align==='right')X=x-larg(s,size,bold);else if(o.align==='center')X=x-larg(s,size,bold)/2;
+    this.c.push(`BT /${bold?'F2':'F1'} ${size} Tf ${this.cor(o.color||[.16,.1,.15],1)} ${X.toFixed(2)} ${(this.H-y).toFixed(2)} Td ${pdfStr(s)} Tj ET`)}
+  rect(x,y,w,h,o={}){const op=o.fill&&o.stroke?'B':o.fill?'f':'S';this.c.push(`q ${o.fill?this.cor(o.fill,1):''} ${o.stroke?this.cor(o.stroke):''} ${o.lw||.6} w ${x.toFixed(2)} ${(this.H-y-h).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re ${op} Q`)}
+  linha(pts,o={}){if(pts.length<2)return;this.c.push(`q ${this.cor(o.color||[0,0,0])} ${o.lw||1} w ${o.dash?'['+o.dash.join(' ')+'] 0 d':''} 1 J 1 j ${pts.map((p,i)=>p[0].toFixed(2)+' '+(this.H-p[1]).toFixed(2)+(i?' l':' m')).join(' ')} S Q`)}
+  circ(x,y,r,cor){const k=.5523*r,Y=this.H-y;this.c.push(`q ${this.cor(cor,1)} ${(x+r).toFixed(2)} ${Y.toFixed(2)} m ${(x+r).toFixed(2)} ${(Y+k).toFixed(2)} ${(x+k).toFixed(2)} ${(Y+r).toFixed(2)} ${x.toFixed(2)} ${(Y+r).toFixed(2)} c ${(x-k).toFixed(2)} ${(Y+r).toFixed(2)} ${(x-r).toFixed(2)} ${(Y+k).toFixed(2)} ${(x-r).toFixed(2)} ${Y.toFixed(2)} c ${(x-r).toFixed(2)} ${(Y-k).toFixed(2)} ${(x-k).toFixed(2)} ${(Y-r).toFixed(2)} ${x.toFixed(2)} ${(Y-r).toFixed(2)} c ${(x+k).toFixed(2)} ${(Y-r).toFixed(2)} ${(x+r).toFixed(2)} ${(Y-k).toFixed(2)} ${(x+r).toFixed(2)} ${Y.toFixed(2)} c f Q`)}
+  tri(x,y,r,cor){const Y=this.H-y;this.c.push(`q ${this.cor(cor,1)} ${x.toFixed(2)} ${(Y+r).toFixed(2)} m ${(x+r).toFixed(2)} ${(Y-r*.8).toFixed(2)} l ${(x-r).toFixed(2)} ${(Y-r*.8).toFixed(2)} l h f Q`)}
+  gerar(){
+    const objs=[];const add=s=>{objs.push(s);return objs.length};
+    add('<< /Type /Catalog /Pages 2 0 R >>');add('PAGES');
+    add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+    add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+    const kids=[];this.pags.forEach(c=>{const s=c.join('\n');const ci=add(`<< /Length ${s.length} >>\nstream\n${s}\nendstream`);kids.push(add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${this.W} ${this.H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${ci} 0 R >>`))});
+    objs[1]=`<< /Type /Pages /Kids [${kids.map(k=>k+' 0 R').join(' ')}] /Count ${kids.length} >>`;
+    let out='%PDF-1.4\n';const off=[];objs.forEach((o,i)=>{off.push(out.length);out+=`${i+1} 0 obj\n${o}\nendobj\n`});
+    const x=out.length;out+=`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`+off.map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${objs.length+1} /Root 1 0 R /Info << /Title (Nosso Jardim - Relatorio de acompanhamento) /Producer (Nosso Jardim) >> >>\nstartxref\n${x}\n%%EOF`;
+    return out;
+  }
+}
+
+/* ---------- relatório ---------- */
+const PC={plum:[.357,.165,.29],plumSoft:[.937,.89,.922],leaf:[.184,.561,.42],leafSoft:[.886,.953,.922],amber:[.722,.431,.039],blue:[.173,.49,.722],danger:[.702,.149,.118],ink:[.16,.1,.15],muted:[.435,.369,.42],line:[.87,.84,.87],jejum:[.54,.25,.43]};
+const PCS={jejum:PC.jejum,cafe:PC.amber,almoco:PC.leaf,jantar:PC.blue};
+function corClasse(k,v){const c=classe(k,v);return c==='ok'?PC.leaf:c==='high'?PC.amber:c==='low'?PC.danger:PC.ink}
+
+function gerarRelatorioPDF(ini,fim,obs){
+  const P=new MiniPDF(),M=42,LW=P.W-2*M;let y=0;
+  const st=statsPeriodo(ini,fim),sa=semanaAtual(),ds=diasEntre(ini,fim);
+  const rodape=()=>{P.linha([[M,P.H-40],[P.W-M,P.H-40]],{color:PC.line,lw:.5});P.txt(M,P.H-27,'Este relatório organiza registros informados pela usuária e não substitui avaliação médica.',{size:7.5,color:PC.muted});P.txt(P.W-M-58,P.H-27,'Página {{P}} de {{T}}',{size:7.5,color:PC.muted})};
+  const novaPag=()=>{rodape();P.nova();y=M;P.txt(M,y+8,'Nosso Jardim · Relatório de acompanhamento · '+brAno(ini)+' a '+brAno(fim),{size:8,color:PC.muted});y+=26};
+  const cabe=h=>{if(y+h>P.H-56)novaPag()};
+  const titulo=t=>{cabe(40);y+=8;P.txt(M,y+12,t.toUpperCase(),{size:11.5,bold:true,color:PC.plum});P.linha([[M,y+17],[M+LW,y+17]],{color:PC.plum,lw:.8});y+=28};
+  const par=(s,o={})=>{const size=o.size||9.5;quebrar(s,LW-(o.ind||0),size,o.bold).forEach(l=>{cabe(size*1.45);P.txt(M+(o.ind||0),y+size,l,{size,bold:o.bold,color:o.color});y+=size*1.45})};
+  const tabela=(cols,rows,o={})=>{const size=o.size||8.8,rh=size*1.9;const hdr=()=>{P.rect(M,y,LW,rh,{fill:PC.plumSoft});let x=M;cols.forEach(c=>{P.txt(c.a==='l'?x+5:x+c.w/2,y+rh*.66,c.t,{size:size-.4,bold:true,color:PC.plum,align:c.a==='l'?undefined:'center'});x+=c.w});y+=rh};
+    cabe(rh*2);hdr();rows.forEach((r,ri)=>{if(y+rh>P.H-56){novaPag();hdr()}if(ri%2)P.rect(M,y,LW,rh,{fill:[.98,.97,.98]});let x=M;r.forEach((cel,i)=>{const c=cols[i];const v=typeof cel==='object'&&cel?cel:{t:cel};P.txt(c.a==='l'?x+5:x+c.w/2,y+rh*.66,v.t??'–',{size,bold:v.b,color:v.c||PC.ink,align:c.a==='l'?undefined:'center'});x+=c.w});y+=rh});
+    P.linha([[M,y],[M+LW,y]],{color:PC.line,lw:.5});y+=8};
+
+  // Cabeçalho
+  P.rect(0,0,P.W,92,{fill:PC.plum});
+  P.txt(M,40,'NOSSO JARDIM',{size:22,bold:true,color:[1,1,1]});
+  P.txt(M,60,'Relatório de acompanhamento',{size:12,color:[.96,.9,.94]});
+  P.txt(P.W-M,40,'Período',{size:9,color:[.96,.9,.94],align:'right'});
+  P.txt(P.W-M,56,brAno(ini)+' a '+brAno(fim),{size:12,bold:true,color:[1,1,1],align:'right'});
+  P.txt(P.W-M,72,'Gerado em '+brAno(hoje()),{size:8.5,color:[.96,.9,.94],align:'right'});
+  y=118;
+
+  titulo('Gestação');
+  par(`Semana atual: ${sa.s}${sa.d?' + '+sa.d+' dias':''} (${trimestre(sa.s)}º trimestre) · data provável aproximada: ${brAno(dpp())}`);
+  par(`Metas usadas para classificação (configuradas pela usuária conforme orientação da equipe): jejum abaixo de ${S.config.metas.jejum} mg/dL; 2 horas após as refeições abaixo de ${S.config.metas.pos} mg/dL.`,{color:PC.muted,size:8.8});
+
+  titulo('Glicemia');
+  if(!st.n)par('Nenhuma glicemia registrada neste período.');
+  else{
+    par(`${st.n} medições em ${ds.length} dias · ${st.pct}% dentro da meta.`,{bold:true});y+=4;
+    tabela([{t:'Horário',w:120,a:'l'},{t:'Medições',w:70},{t:'Média',w:70},{t:'Mínimo',w:70},{t:'Máximo',w:70},{t:'Na meta',w:LW-400}],
+      GL.map(([k])=>{const p=st.por[k];return[GL_CURTO[k],String(p.n),p.n?p.media+' mg/dL':'–',p.n?String(p.min):'–',p.n?String(p.max):'–',p.n?`${p.pct}% (${p.ok}/${p.n})`:'–']}));
+  }
+
+  titulo('Gráficos');
+  const grafico=(tit,ks,h)=>{cabe(h+46);P.txt(M,y+10,tit,{size:10,bold:true});y+=18;
+    const L=M+30,R=M+LW-8,T=y+4,B=y+h;let vals=[];ks.forEach(k=>st.por[k].vals.forEach(v=>vals.push(v)));
+    const meta=metaDe(ks[0]);let lo=Math.min(60,Math.floor((Math.min(...vals,meta)-5)/10)*10),hi=Math.max(Math.ceil((meta+25)/10)*10,Math.ceil((Math.max(...vals,meta)+5)/10)*10);
+    const span=Math.max(1,diffDias(ini,fim));const X=d=>L+(diffDias(ini,d)/span)*(R-L),Y=v=>T+(1-(v-lo)/(hi-lo))*(B-T);
+    P.rect(L,Y(meta),R-L,Math.max(0,Y(Math.max(lo,HIPO))-Y(meta)),{fill:PC.leafSoft});
+    P.linha([[L,T],[L,B],[R,B]],{color:PC.line,lw:.7});
+    [lo,meta,hi].forEach(v=>P.txt(L-4,Y(v)+3,String(v),{size:7.5,color:PC.muted,align:'right'}));
+    P.linha([[L,Y(meta)],[R,Y(meta)]],{color:PC.leaf,dash:[3,3],lw:.8});P.txt(L+4,Y(meta)-3,'meta < '+meta,{size:7.5,color:PC.leaf});
+    P.txt(L,B+11,brAno(ini),{size:7.5,color:PC.muted});P.txt(R,B+11,brAno(fim),{size:7.5,color:PC.muted,align:'right'});
+    ks.forEach((k,si)=>{const p=st.por[k];const pts=p.datas.map((d,i)=>[X(d),Y(p.vals[i])]);P.linha(pts,{color:PCS[k],lw:1.2});pts.forEach(q=>{if(si===0)P.circ(q[0],q[1],2.4,PCS[k]);else if(si===1)P.rect(q[0]-2.2,q[1]-2.2,4.4,4.4,{fill:PCS[k]});else P.tri(q[0],q[1],2.8,PCS[k])})});
+    if(!vals.length)P.txt((L+R)/2,(T+B)/2,'Sem medições no período',{size:9,color:PC.muted,align:'center'});
+    y=B+28;
+    if(ks.length>1){let x=L;ks.forEach((k,si)=>{if(si===0)P.circ(x+3,y-3,2.6,PCS[k]);else if(si===1)P.rect(x,y-6,5.5,5.5,{fill:PCS[k]});else P.tri(x+3,y-3,3,PCS[k]);P.txt(x+10,y,GL_CURTO[k],{size:8,color:PC.ink});x+=larg(GL_CURTO[k],8)+30});y+=10}
+    y+=8};
+  grafico('Glicemia de jejum ao longo do período',['jejum'],130);
+  grafico('Glicemias 2 horas após as refeições',['cafe','almoco','jantar'],130);
+  cabe(110);P.txt(M,y+10,'Percentual dentro da meta',{size:10,bold:true});y+=20;
+  GL.forEach(([k])=>{const p=st.por[k];P.txt(M,y+8,GL_CURTO[k],{size:8.8});const bx=M+90,bw=LW-190;P.rect(bx,y,bw,10,{fill:PC.plumSoft});if(p.n)P.rect(bx,y,bw*p.pct/100,10,{fill:PCS[k]});P.txt(M+LW,y+8,p.n?`${p.pct}% (${p.ok}/${p.n})`:'sem medições',{size:8.8,bold:!!p.n,align:'right'});y+=18});
+
+  titulo('Insulina registrada');
+  const ins=[];ds.forEach(d=>{const o=S.dias[d];(o&&o.insulina||[]).forEach(x=>ins.push([brAno(d),x.hora||'–',x.tipo||'–',x.un!=null&&x.un!==''?String(x.un)+' UI':'–']))});
+  if(ins.length)tabela([{t:'Data',w:110,a:'l'},{t:'Horário',w:90},{t:'Tipo',w:LW-300,a:'l'},{t:'Unidades',w:100}],ins);else par('Nenhuma dose registrada neste período.');
+  par('Doses conforme registradas pela usuária; o aplicativo não calcula nem sugere doses.',{size:8,color:PC.muted});
+
+  titulo('Peso');
+  const pesosAte=Object.keys(S.dias).filter(d=>d<=fim&&S.dias[d].peso).sort();const noPer=pesosAte.filter(d=>d>=ini);
+  const atual=pesosAte.length?S.dias[pesosAte[pesosAte.length-1]].peso:null;const pre=S.config.pesoPre;
+  par(`Peso pré-gestacional: ${pre?pre+' kg':'não informado'} · Peso mais recente: ${atual?atual+' kg ('+brAno(pesosAte[pesosAte.length-1])+')':'não registrado'}${pre&&atual?' · Variação desde o início: '+(atual-pre>0?'+':'')+(atual-pre).toFixed(1)+' kg':''}`);
+  if(noPer.length){y+=2;tabela([{t:'Data',w:LW/2,a:'l'},{t:'Peso',w:LW/2}],noPer.map(d=>[brAno(d),S.dias[d].peso+' kg']))}else par('Sem registros de peso neste período.',{color:PC.muted});
+
+  titulo('Registros diários de glicemia');
+  const linhas=ds.filter(d=>S.dias[d]&&(Object.keys(S.dias[d].glic||{}).length||(S.dias[d].insulina||[]).length));
+  if(linhas.length){
+    tabela([{t:'Data',w:85,a:'l'},{t:'Jejum',w:72},{t:'Pós-café',w:72},{t:'Pós-almoço',w:72},{t:'Pós-jantar',w:72},{t:'Insulina',w:LW-373}],
+      linhas.map(d=>{const g=S.dias[d].glic||{};return[brAno(d),...GL.map(([k])=>g[k]!=null?{t:String(g[k]),c:corClasse(k,g[k]),b:classe(k,g[k])!=='ok'}:'–'),(S.dias[d].insulina||[]).map(x=>(x.hora?x.hora+' ':'')+x.un+' UI').join(', ')||'–']}),{size:8.4});
+    par('Verde: dentro da meta · Laranja em negrito: acima da meta · Vermelho em negrito: abaixo de 70 mg/dL.',{size:7.8,color:PC.muted});
+  }else par('Sem registros diários neste período.');
+
+  titulo('Observações');
+  const o=limparTxt(obs||'');
+  if(o)par(o);else{cabe(90);for(let i=0;i<5;i++){y+=16;P.linha([[M,y],[M+LW,y]],{color:PC.line,lw:.6})}y+=10}
+
+  cabe(56);y+=8;P.rect(M,y,LW,40,{fill:PC.plumSoft});
+  const av=quebrar('Aviso: Este relatório organiza registros informados pela usuária e não substitui avaliação médica. Médias e percentuais são calculados apenas com as medições registradas.',LW-20,8.8,false);
+  av.forEach((l,i)=>P.txt(M+10,y+15+i*12,l,{size:8.8}));y+=48;
+  rodape();
+  let out=P.gerar();const T=P.pags.length;let n=0;
+  // numeração de páginas: substitui na ordem em que aparecem
+  out=out.replace(/P\\341gina \{\{P\}\} de \{\{T\}\}/g,()=>{n++;return 'P\\341gina '+n+' de '+T});
+  // corrige /Length após substituição
+  out=corrigirComprimentos(out);
+  return out;
+}
+function corrigirComprimentos(pdf){
+  // recalcula /Length de cada stream e a tabela xref
+  const objs=[];const re=/(\d+) 0 obj\n([\s\S]*?)\nendobj\n/g;let m;
+  while((m=re.exec(pdf)))objs.push(m[2]);
+  const fix=objs.map(o=>{const i=o.indexOf('\nstream\n');if(i<0)return o;const corpo=o.slice(i+8,o.lastIndexOf('\nendstream'));return o.slice(0,i).replace(/\/Length \d+/,'/Length '+corpo.length)+o.slice(i)});
+  const trailer=pdf.slice(pdf.indexOf('trailer'));
+  let out='%PDF-1.4\n';const off=[];fix.forEach((o,i)=>{off.push(out.length);out+=`${i+1} 0 obj\n${o}\nendobj\n`});
+  const x=out.length;out+=`xref\n0 ${fix.length+1}\n0000000000 65535 f \n`+off.map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('')+trailer.replace(/startxref\n\d+/,'startxref\n'+x);
+  return out;
+}
+function podeCompartilharArquivo(r){try{return!!(navigator.canShare&&navigator.canShare({files:[new File([r.blob],r.nome,{type:r.tipo||'application/pdf'})]}))}catch(e){return false}}
+function baixarBlob(blob,nome){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}
+async function compartilharBlob(blob,nome,tipo,titulo){try{await navigator.share({files:[new File([blob],nome,{type:tipo})],title:titulo});return true}catch(e){if(e&&e.name==='AbortError')return true;return false}}
+
+/* =====================================================================
+   Lembretes (opcionais). Usam notificações do Android quando permitidas.
+   Limite: cada lembrete no máximo 1x por dia; somem quando o registro é feito.
+   ===================================================================== */
+const lembTimers=[];
+function msAte(hm,data){const[h,m]=hm.split(':').map(Number);const d=parse(data||hoje());d.setHours(h,m,0,0);return d.getTime()-Date.now()}
+function enviadosHoje(){const L=S.config.lembretes,t=hoje();L.enviados[t]=L.enviados[t]||{};return L.enviados[t]}
+function limparLembretes(){
+  const L=S.config.lembretes,t=hoje();let mudou=false;
+  Object.keys(L.enviados).forEach(d=>{if(d<addDays(t,-3)){delete L.enviados[d];mudou=true}});
+  const antes=L.pendentes.length;
+  L.pendentes=L.pendentes.filter(p=>p.data===t&&!(S.dias[t]&&S.dias[t].glic&&S.dias[t].glic[p.tipo]!=null));
+  if(L.pendentes.length!==antes)mudou=true;
+  return mudou;
+}
+async function pedirPermissao(){
+  if(!('Notification' in window))return'indisponivel';
+  if(Notification.permission==='default'){try{return await Notification.requestPermission()}catch(e){return Notification.permission}}
+  return Notification.permission;
+}
+async function notificar(titulo,corpo,tag){
+  try{
+    if('Notification' in window&&Notification.permission==='granted'&&navigator.serviceWorker){
+      const reg=await navigator.serviceWorker.ready;await reg.showNotification(titulo,{body:corpo,tag,icon:'icon-192.png',badge:'icon-192.png',renotify:false});return true;
+    }
+  }catch(e){}
+  toast('⏰ '+titulo+(corpo?' — '+corpo:''),5000);return false;
+}
+function itensDeHoje(){
+  const L=S.config.lembretes,t=hoje(),o=S.dias[t]||emptyDia(t),env=enviadosHoje(),it=[];
+  if(L.ativo){
+    if(L.jejum.on&&L.jejum.hora)it.push({id:'jejum',quando:msAte(L.jejum.hora),ok:()=>{const x=S.dias[t];return!(x&&x.glic&&x.glic.jejum!=null)},tit:'Glicemia de jejum',txt:'Hora de medir e anotar no Nosso Jardim 🌱'});
+    if(L.vitaminas.on&&L.vitaminas.hora&&S.config.vitaminas.length)it.push({id:'vitaminas',quando:msAte(L.vitaminas.hora),ok:()=>{const x=S.dias[t];return!(x&&S.config.vitaminas.every(v=>x.vitaminas&&x.vitaminas[v]))},tit:'Vitaminas',txt:'Um lembrete carinhoso para as vitaminas de hoje 💊'});
+    if(L.agua.on)[['10:30',.3],['14:30',.6],['17:30',.85]].forEach(([h,f],i)=>it.push({id:'agua'+i,quando:msAte(h),ok:()=>{const x=S.dias[t];return((x&&x.agua)||0)<Math.ceil(S.config.metaAgua*f)},tit:'Água',txt:'Que tal um copo de água agora? 💧'}));
+  }
+  (L.pendentes||[]).forEach(p=>it.push({id:'pos-'+p.tipo,quando:p.quando-Date.now(),ok:()=>{const x=S.dias[t];return!(x&&x.glic&&x.glic[p.tipo]!=null)},tit:'Glicemia 2h após '+POS_REF[p.tipo].toLowerCase(),txt:'Já se passaram 2 horas da refeição. Hora de medir 🌱'}));
+  return it.filter(x=>!env[x.id]);
+}
+function agendarLembretes(){
+  lembTimers.splice(0).forEach(clearTimeout);
+  if(limparLembretes())cache();
+  itensDeHoje().forEach(x=>{if(x.quando>0&&x.quando<864e5)lembTimers.push(setTimeout(()=>disparar(x),x.quando))});
+  // reagenda à meia-noite
+  const d=new Date();d.setHours(24,0,5,0);lembTimers.push(setTimeout(agendarLembretes,d-Date.now()));
+}
+function disparar(x){
+  const env=enviadosHoje();if(env[x.id]||!x.ok())return;
+  env[x.id]=true;cache();notificar(x.tit,x.txt,x.id);if(S.tab==='hoje'&&!S.sub)render();
+}
+function lembretesAtrasados(){
+  const t=hoje(),o=S.dias[t];
+  return(S.config.lembretes.pendentes||[]).filter(p=>p.data===t&&p.quando<Date.now()&&Date.now()-p.quando<3*36e5&&!(o&&o.glic&&o.glic[p.tipo]!=null)).map(p=>({tipo:p.tipo,hora:new Date(p.quando).toTimeString().slice(0,5)}));
+}
+async function criarLembrete2h(tipo,horaRef){
+  const k=typeof tipo==='string'&&POS_REF[tipo]?tipo:REF_POS[tipo];if(!k)return;
+  const t=hoje();const base=horaRef||agoraHM();const alvo=horaMais(base,120);
+  const quando=Date.now()+msAte(alvo);if(quando<=Date.now())return toast('Esse horário já passou.');
+  const L=S.config.lembretes;L.pendentes=L.pendentes.filter(p=>!(p.data===t&&p.tipo===k));L.pendentes.push({tipo:k,data:t,quando});
+  const env=enviadosHoje();delete env['pos-'+k];
+  cache();const perm=await pedirPermissao();agendarLembretes();render();
+  toast(perm==='granted'?`⏰ Vou lembrar às ${alvo}.`:`⏰ Lembrete às ${alvo} (aparece dentro do app; as notificações não estão permitidas).`,4000);
+}
+
+/* =====================================================================
+   Backup e restauração
+   Arquivo: nosso-jardim-backup-AAAA-MM-DD.json
+   {app:'nosso-jardim', formato:1, schema, criadoEm, resumo, dados:{dias,config}, fotos:{id:dataURL}}
+   A restauração só toca nos dados depois de validar o arquivo inteiro.
+   ===================================================================== */
+const BK_FORMATO=1;
+async function criarBackup(){
+  const incluir=!(document.getElementById('bkFotos')&&!document.getElementById('bkFotos').checked);
+  S.bkSemFotos=!incluir;
+  let fotos={},erroFotos=false;
+  if(incluir){try{fotos=await FDB.tudo()}catch(e){erroFotos=true;fotos={}}}
+  const t=totais();
+  const bk={app:'nosso-jardim',formato:BK_FORMATO,schema:SCHEMA,versaoApp:APP_VERSAO,criadoEm:new Date().toISOString(),
+    resumo:{dias:Object.keys(S.dias).length,pontosTotal:t.total,saldo:t.saldo,estagio:t.est.nome,resgates:(S.config.resgates||[]).length,fotos:Object.keys(fotos).length,fotosIncluidas:incluir&&!erroFotos},
+    dados:{dias:S.dias,config:S.config},fotos};
+  const blob=new Blob([JSON.stringify(bk)],{type:'application/json'});
+  const nome=`nosso-jardim-backup-${hoje()}.json`;
+  S.bkPronto={blob,nome,tipo:'application/json',resumo:bk.resumo,erroFotos};
+  S.dlg={tit:'📦 Backup pronto',html:`<p>${bk.resumo.dias} dias de registros, ${bk.resumo.pontosTotal} pontos no total, ${bk.resumo.resgates} prêmios resgatados${incluir&&!erroFotos?`, ${bk.resumo.fotos} fotos`:''}.</p>
+    ${!incluir?'<p class="alert info">As fotos <b>não</b> foram incluídas neste backup.</p>':erroFotos?'<p class="alert info">Não consegui ler as fotos; este backup ficou <b>sem fotos</b>.</p>':''}
+    <p class="muted">Tamanho: ${(blob.size/1024/1024).toFixed(1).replace('.',',')} MB. Guarde o arquivo fora do celular (Drive, e-mail) para não perder nada se o app for desinstalado.</p>`,
+    botoes:[['bkSalvar','Salvar no celular',''],...(podeCompartilharArquivo(S.bkPronto)?[['bkComp','Compartilhar (Drive, e-mail…)','ghost']]:[]),['fecharDlg','Fechar','ghost']]};
+  render();
+}
+function marcarBackup(){S.config.ultimoBackup=new Date().toISOString();cache()}
+
+function validarBackup(obj){
+  if(!obj||typeof obj!=='object')return{erro:'O arquivo não é um backup válido.'};
+  if(obj.app!=='nosso-jardim')return{erro:'Este arquivo não é um backup do Nosso Jardim.'};
+  if(typeof obj.formato!=='number')return{erro:'Backup sem versão de formato.'};
+  if(obj.formato>BK_FORMATO)return{erro:'Este backup foi feito por uma versão mais nova do app. Atualize o app antes de restaurar.'};
+  const d=obj.dados;if(!d||typeof d!=='object'||!d.dias||typeof d.dias!=='object'||Array.isArray(d.dias)||!d.config||typeof d.config!=='object')return{erro:'O backup está incompleto (faltam registros ou configurações).'};
+  const ks=Object.keys(d.dias);
+  if(ks.some(k=>!isData(k)||!d.dias[k]||typeof d.dias[k]!=='object'))return{erro:'Os registros do backup estão com formato inesperado.'};
+  const fotos=obj.fotos&&typeof obj.fotos==='object'?obj.fotos:{};
+  const fotosOk=Object.entries(fotos).filter(([k,v])=>typeof k==='string'&&typeof v==='string'&&/^data:image\//.test(v));
+  const ord=ks.sort();
+  return{ok:true,dias:ks.length,ini:ord[0],fim:ord[ord.length-1],fotos:fotosOk.length,fotosLista:fotosOk,criadoEm:obj.criadoEm,resgates:Array.isArray(d.config.resgates)?d.config.resgates.length:0};
+}
+async function lerArquivoBackup(file){
+  let obj;
+  try{obj=JSON.parse(await file.text())}catch(e){S.dlg={tit:'Arquivo inválido',html:'<p>Não consegui ler este arquivo. Nenhum dado foi alterado.</p>',botoes:[['fecharDlg','Entendi','']]};render();return}
+  const v=validarBackup(obj);
+  if(!v.ok){S.dlg={tit:'Não foi possível restaurar',html:`<p>${esc(v.erro)}</p><p class="muted">Nenhum dado foi alterado.</p>`,botoes:[['fecharDlg','Entendi','']]};render();return}
+  S.restPend={obj,v};
+  S.dlg={tit:'📥 Restaurar backup?',html:`<p><b>Nesta restauração, os dados atuais poderão ser substituídos.</b></p>
+    <div class="kv"><span>Backup de</span><b>${v.criadoEm?brAno(String(v.criadoEm).slice(0,10)):'data desconhecida'}</b></div>
+    <div class="kv"><span>Registros</span><b>${v.dias} dias${v.dias?' ('+br(v.ini)+' a '+br(v.fim)+')':''}</b></div>
+    <div class="kv"><span>Prêmios resgatados</span><b>${v.resgates}</b></div>
+    <div class="kv"><span>Fotos</span><b>${v.fotos?v.fotos:'não incluídas'}</b></div>
+    <p class="muted" style="margin-top:10px">Os registros atuais (${Object.keys(S.dias).length} dias) serão trocados pelos do backup. Antes, o app guarda uma cópia de segurança dos dados atuais neste celular.</p>`,
+    botoes:[['confRestaurar','Restaurar',''],['fecharDlg','Cancelar','ghost']]};
+  render();
+}
+async function confirmarRestauracao(){
+  const p=S.restPend;if(!p)return;S.restPend=null;
+  const antes={dias:S.dias,config:S.config};
+  // 1) cópia de segurança dos dados atuais
+  try{localStorage.setItem('jardim-cache-antes-restauracao',JSON.stringify({salvoEm:new Date().toISOString(),dias:S.dias,config:S.config}))}catch(e){}
+  // 2) fotos primeiro (se falhar, nada é trocado)
+  try{for(const[k,val]of p.v.fotosLista){await FDB.put(k,val);S.fotoCache[k]=val}}
+  catch(e){S.dlg={tit:'Não foi possível restaurar',html:'<p>Faltou espaço para as fotos do backup. Nenhum registro foi alterado.</p>',botoes:[['fecharDlg','Entendi','']]};render();return}
+  // 3) registros e configurações, normalizados pela migração
+  const dias={};Object.keys(p.obj.dados.dias).forEach(k=>dias[k]=normalizarDia(k,p.obj.dados.dias[k]));
+  S.dias=dias;S.config=normalizarConfig(p.obj.dados.config);if(!S.config.premiosVersao)S.config.premiosVersao=4;
+  migrar();
+  if(!cache()){S.dias=antes.dias;S.config=antes.config;cache();S.dlg={tit:'Não foi possível restaurar',html:'<p>Não havia espaço para gravar os dados do backup. Os dados anteriores foram mantidos.</p>',botoes:[['fecharDlg','Entendi','']]};render();return}
+  S.sel=hoje();S.dlg={tit:'✓ Backup restaurado',html:`<p>${Object.keys(S.dias).length} dias de registros e ${totais().total} pontos no total.</p>`,botoes:[['fecharDlg','Ótimo','']]};
+  agendarLembretes();render();
+}
+function vDialogo(){
+  const d=S.dlg;if(!d)return'';
+  return `<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(d.tit)}"><div class="box"><h2>${d.tit}</h2>${d.html}
+    <div class="btnrow">${d.botoes.map(([a,t,c])=>`<button class="${c}" data-act="${a}">${t}</button>`).join('')}</div></div></div>`;
+}
+
+/* =====================================================================
+   Eventos, coach, fotos e inicialização
+   ===================================================================== */
+function autoLembrete(o,r){
+  const k=REF_POS[r.tipo];const L=S.config.lembretes;
+  if(k&&L.ativo&&L[k]&&L[k].on&&o.data===hoje()&&r.hora&&!(o.glic&&o.glic[k]!=null))criarLembrete2h(k,r.hora);
+}
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.id==='fotoIn'||el.id==='galIn'){const f=el.files&&el.files[0];el.value='';if(f)analisarFoto(f);return}
+  if(el.id==='bkIn'){const f=el.files&&el.files[0];el.value='';if(f)lerArquivoBackup(f);return}
+  if(el.id==='albIn'||el.id==='albGalIn'){const f=el.files&&el.files[0];el.value='';if(f)fotoAlbum(f);return}
+  if(el.id==='rObs'){S.config.relObs=el.value;cache();return}
+  if(el.id==='rIni'){S.relIni=el.value;return}
+  if(el.id==='rFim'){S.relFim=el.value;return}
+  if(el.id==='bkFotos'){S.bkSemFotos=!el.checked;return}
+  if(el.dataset.lemb){const k=el.dataset.lemb,L=S.config.lembretes;S.abrirLemb=true;
+    if(k==='ativo'){L.ativo=el.checked;if(el.checked)pedirPermissao().then(()=>{cache();agendarLembretes();render()})}
+    else L[k].on=el.checked;
+    cache();agendarLembretes();render();return}
+  if(el.dataset.lembh){S.config.lembretes[el.dataset.lembh].hora=el.value||S.config.lembretes[el.dataset.lembh].hora;S.abrirLemb=true;cache();agendarLembretes();return}
+  const o=dia(S.sel);
+  if(el.dataset.g){const v=el.value===''?null:Math.round(+el.value);if(v==null)delete o.glic[el.dataset.g];else o.glic[el.dataset.g]=v;S.pendingRender=false;saveDia(o)}
+  else if(el.dataset.vit!==undefined){o.vitaminas[el.dataset.vit]=el.checked;saveDia(o)}
+  else if(el.id==='peso'){o.peso=el.value?+(+el.value).toFixed(1):null;saveDia(o)}
+  else if(el.id==='pesoPre'){S.config.pesoPre=el.value?+el.value:null;saveConfig()}
+});
+document.addEventListener('click',async e=>{
+  if(e.target.classList&&e.target.classList.contains('modal')){S.modal=null;S.dlg=null;render();return}
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.tab){S.modal=null;S.editP=null;S.sub=null;S.dlg=null;S.tab=b.dataset.tab;render();window.scrollTo(0,0);return}
+  if(b.dataset.q){ask(b.dataset.q);return}
+  const a=b.dataset.act;if(!a)return;const o=dia(S.sel);const val=id=>{const x=document.getElementById(id);return x?x.value.trim():''};
+  if(a==='dia'){const n=addDays(S.sel,+b.dataset.n);if(n<=hoje()){S.sel=n;render()}}
+  if(a==='addIns'){const un=val('insU');if(!un)return toast('Informe as unidades.');const h=val('insH')||agoraHM();o.insulina.push({tipo:val('insT')||'Insulina',un,hora:h});saveDia(o);toast('Dose registrada.')}
+  if(a==='foto'){S.ultRefT=val('refT');document.getElementById('fotoIn').click()}
+  if(a==='galeria'){S.ultRefT=val('refT');document.getElementById('galIn').click()}
+  if(a==='addRef'){const d=val('refD');if(!d)return toast('Escreva o que ela comeu.');const r={tipo:val('refT'),desc:d};if(S.sel===hoje())r.hora=agoraHM();S.ultRefT=r.tipo;o.refeicoes.push(r);saveDia(o);
+    toast(r.hora?`${r.tipo} registrado às ${r.hora}.`:`${r.tipo} registrado.`);autoLembrete(o,r)}
+  if(a==='lembrar2h'){const r=o.refeicoes[+b.dataset.i];if(r)criarLembrete2h(r.tipo,r.hora)}
+  if(a==='addAt'){const t=val('atT'),m=val('atM');if(!t||!m)return toast('Preencha atividade e minutos.');o.atividade.push({tipo:t,min:+m});saveDia(o)}
+  if(a==='del'){const it=o[b.dataset.k][+b.dataset.i];if(it&&it.fotoId){FDB.del(it.fotoId).catch(()=>{});delete S.fotoCache[it.fotoId]}o[b.dataset.k].splice(+b.dataset.i,1);saveDia(o)}
+  if(a==='verPrato'){S.modal={d:b.dataset.d,i:+b.dataset.i};render()}
+  if(a==='fechar'){S.modal=null;render()}
+  if(a==='maisDias'){S.pratosDias=(S.pratosDias||14)+14;render()}
+  if(a==='agua'){const n=+b.dataset.n;o.agua=(o.agua===n)?n-1:n;saveDia(o)}
+  if(a==='addP'){const n=val('pN'),c=+val('pC');if(!n||!c)return toast('Preencha o prêmio e os pontos.');S.config.premios.push({id:'p'+Date.now(),nome:n,custo:c});saveConfig()}
+  if(a==='editP'){S.editP=b.dataset.id;render();const i=document.getElementById('eC');if(i)i.focus()}
+  if(a==='cancelP'){S.editP=null;render()}
+  if(a==='saveP'){const n=val('eN'),c=Math.round(+val('eC'));if(!n||!(c>0))return toast('Preencha o prêmio e os pontos.');S.config.premios=S.config.premios.map(p=>p.id===b.dataset.id?{...p,nome:n,custo:c}:p);S.editP=null;document.activeElement&&document.activeElement.blur();saveConfig();toast('Prêmio atualizado.')}
+  if(a==='delP'){if(!confirm('Remover este prêmio?'))return;S.config.premios=S.config.premios.filter(p=>p.id!==b.dataset.id);saveConfig()}
+  if(a==='resg'){const p=S.config.premios.find(p=>p.id===b.dataset.id);if(!p||!confirm(`Resgatar "${p.nome}" por ${p.custo} pontos?`))return;S.config.resgates=[...(S.config.resgates||[]),{nome:p.nome,custo:p.custo,data:hoje()}];saveConfig();toast('Resgatado! Hora de cobrar o Gustavo 🌸')}
+  if(a==='saveCfg'){const c=S.config;const s=+val('cSem');if(s>0&&s<=42&&s!==semanaAtual().s)c.gestRef={data:hoje(),semanas:s};c.metaAgua=Math.max(4,Math.min(16,+val('cAgua')||10));c.insulinaPadrao=val('cIns')||'NPH';c.vitaminas=val('cVit').split(',').map(x=>x.trim()).filter(Boolean);c.nomeBebe=val('cBebe').slice(0,40);document.activeElement&&document.activeElement.blur();saveConfig();toast('Ajustes salvos.')}
+  if(a==='saveMetas'){const j=+val('mJej'),p=+val('mPos');if(!(j>=60&&j<=200)||!(p>=60&&p<=250))return toast('Informe metas entre 60 e 250 mg/dL.');S.config.metas={jejum:Math.round(j),pos:Math.round(p)};document.activeElement&&document.activeElement.blur();saveConfig();toast('Metas salvas. Cores e gráficos atualizados.')}
+  if(a==='ask'){const q=val('cq');if(q)ask(q)}
+  // Glicemia / gráficos
+  if(a==='gper'){S.glicPer=b.dataset.v==='tudo'?'tudo':+b.dataset.v;render()}
+  if(a==='gser'){S.glicSerie=b.dataset.v;render()}
+  if(a==='histTudo'){S.histTudo=!S.histTudo;render()}
+  if(a==='corrMais'){S.corrMais=!S.corrMais;render()}
+  // Relatório
+  if(a==='relatorio'){S.sub='relatorio';S.relPdf=null;render();window.scrollTo(0,0)}
+  if(a==='voltar'){S.sub=null;S.albumEdit=null;render();window.scrollTo(0,0)}
+  if(a==='rper'){S.relPer=b.dataset.v==='custom'?'custom':+b.dataset.v;S.relPdf=null;render()}
+  if(a==='gerarRel'){
+    const obs=document.getElementById('rObs');if(obs){S.config.relObs=obs.value;cache()}
+    let ini,fim=hoje();
+    if(S.relPer==='custom'){ini=val('rIni')||S.relIni;fim=val('rFim')||S.relFim||hoje();S.relIni=ini;S.relFim=fim;if(!isData(ini)||!isData(fim)||ini>fim)return toast('Escolha datas válidas (início antes do fim).')}
+    else ini=addDays(hoje(),-(S.relPer-1));
+    try{const pdf=gerarRelatorioPDF(ini,fim,S.config.relObs);const blob=new Blob([pdf],{type:'application/pdf'});
+      if(S.relPdf&&S.relPdf.url)URL.revokeObjectURL(S.relPdf.url);
+      S.relPdf={blob,url:URL.createObjectURL(blob),nome:`nosso-jardim-relatorio-${ini}_a_${fim}.pdf`,tipo:'application/pdf'};render();toast('Relatório pronto.')}
+    catch(err){console.error(err);toast('Não consegui gerar o relatório. Tente outro período.')}
+  }
+  if(a==='relAbrir'&&S.relPdf){const w=window.open(S.relPdf.url,'_blank');if(!w)baixarBlob(S.relPdf.blob,S.relPdf.nome)}
+  if(a==='relBaixar'&&S.relPdf){baixarBlob(S.relPdf.blob,S.relPdf.nome);toast('Salvo em Downloads.')}
+  if(a==='relComp'&&S.relPdf){const ok=await compartilharBlob(S.relPdf.blob,S.relPdf.nome,'application/pdf','Relatório Nosso Jardim');if(!ok)baixarBlob(S.relPdf.blob,S.relPdf.nome)}
+  // Álbum
+  if(a==='album'){S.sub='album';S.albumEdit=null;render();window.scrollTo(0,0)}
+  if(a==='albEditar'){S.albumEdit=+b.dataset.s;S.albDraft=null;render()}
+  if(a==='albCancelar'){S.albumEdit=null;S.albDraft=null;render()}
+  if(a==='albSalvar'){const s=+b.dataset.s;const al=S.config.album[s]||{};al.nota=val('albNota').slice(0,1000);S.config.album[s]=al;S.albumEdit=null;document.activeElement&&document.activeElement.blur();saveConfig();toast('Memória guardada 💗')}
+  if(a==='albFoto'||a==='albGal'){S.albFotoSem=+b.dataset.s;S.albDraft=val('albNota');document.getElementById(a==='albFoto'?'albIn':'albGalIn').click()}
+  if(a==='albSemFoto'){const s=+b.dataset.s,al=S.config.album[s]||{};if(al.fotoId){FDB.del(al.fotoId).catch(()=>{});delete S.fotoCache[al.fotoId];al.fotoId=null;S.config.album[s]=al;saveConfig()}}
+  // Lembretes
+  if(a==='testeNotif'){const p=await pedirPermissao();notificar('Nosso Jardim','Os lembretes estão funcionando 🌱','teste');if(p!=='granted')render()}
+  // Backup
+  if(a==='backup'){toast('Preparando o backup…');criarBackup()}
+  if(a==='restaurar'){document.getElementById('bkIn').click()}
+  if(a==='bkSalvar'&&S.bkPronto){baixarBlob(S.bkPronto.blob,S.bkPronto.nome);marcarBackup();S.dlg=null;S.abrirBackup=true;render();toast('Backup salvo em Downloads.')}
+  if(a==='bkComp'&&S.bkPronto){const ok=await compartilharBlob(S.bkPronto.blob,S.bkPronto.nome,'application/json','Backup Nosso Jardim');if(!ok)baixarBlob(S.bkPronto.blob,S.bkPronto.nome);marcarBackup();S.dlg=null;S.abrirBackup=true;render()}
+  if(a==='fecharDlg'){S.dlg=null;S.restPend=null;render()}
+  if(a==='confRestaurar'){S.dlg=null;render();toast('Restaurando…');confirmarRestauracao()}
+});
+
+async function fotoAlbum(file){
+  const s=S.albFotoSem;if(s==null)return;
+  try{const img=await reduzir(file,900,.8);const id='album-'+s+'-'+Date.now();await FDB.put(id,img);S.fotoCache[id]=img;
+    const al=S.config.album[s]||{};if(al.fotoId&&al.fotoId!==id){FDB.del(al.fotoId).catch(()=>{});delete S.fotoCache[al.fotoId]}
+    al.fotoId=id;if(S.albDraft!=null)al.nota=S.albDraft;S.config.album[s]=al;saveConfig();toast('Foto guardada no álbum.')}
+  catch(e){toast('Não consegui guardar a foto.')}
+}
+
+/* ---------- coach ---------- */
+function resumo(){
+  const sa=semanaAtual(),m=S.config.metas;
+  let t=`Semana de gestação: ${sa.s}. Metas de acompanhamento configuradas pela usuária conforme a equipe médica: jejum abaixo de ${m.jejum} e 2h pós-refeição abaixo de ${m.pos} mg/dL. Insulina prescrita pelo endocrinologista (${S.config.insulinaPadrao}).
+Regras do app (obrigatórias): não altere, calcule ou sugira doses de insulina ou remédios; não mande suspender medicamentos; não prescreva dieta terapêutica; não diagnostique diabetes nem complicações da gravidez; use as metas acima só para comentar tendências; diante de algo preocupante, oriente contato com a equipe médica ou serviço de emergência conforme a situação.
+Últimos 7 dias:\n`;
+  for(let i=6;i>=0;i--){const d=addDays(hoje(),-i),o=S.dias[d];if(!o)continue;const g=o.glic||{};
+    t+=`${br(d)}: jejum ${g.jejum??'-'}, pós-café ${g.cafe??'-'}, pós-almoço ${g.almoco??'-'}, pós-jantar ${g.jantar??'-'}; insulina ${(o.insulina||[]).map(x=>x.hora+' '+x.un+'UI').join(', ')||'-'}; refeições: ${(o.refeicoes||[]).map(r=>r.tipo+': '+r.desc+(r.carbo!=null?' (~'+r.carbo+' g carbo)':'')).join(' | ')||'-'}; água ${o.agua||0} copos; atividade ${(o.atividade||[]).reduce((a,b)=>a+(+b.min||0),0)} min\n`}
+  return t;
+}
+/* Rede de segurança: se a resposta parecer falar de mudar dose, acrescenta um lembrete claro */
+const RE_DOSE=/\b(aument|reduz|diminu|suspend|interromp|par[ae]r? de|pul[ae]r?|ajust|dobr|troqu|mud[ae]r?)\w*\b[^.\n]{0,40}\b(dose|insulina|nph|unidades|\d+\s*ui|medica|rem[eé]dio)/i;
+function protegerResposta(txt){if(RE_DOSE.test(txt||''))return txt+'\n\n⚠️ Lembrete importante: qualquer mudança de insulina ou remédio é decidida só pela sua equipe médica.';return txt}
+const COACH_URL='https://coach-jardim.gtv-rowe.workers.dev';
+async function ask(q){
+  if(S.busy)return;
+  if(!/^https:/.test(COACH_URL)){toast('Coach ainda não configurado.');return}
+  if(navigator.onLine===false){toast('O coach precisa de internet. Tente de novo quando estiver conectada.');return}
+  S.busy=true;S.chat.push({role:'user',content:q});const resp={role:'assistant',content:''};S.chat.push(resp);
+  const cq=document.getElementById('cq');if(cq)cq.value='';
+  document.activeElement&&document.activeElement.blur();render();
+  try{
+    const r=await fetch(COACH_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:S.chat.slice(0,-1).slice(-12),contexto:resumo(),metas:S.config.metas})});
+    const d=await r.json();
+    resp.content=r.ok?protegerResposta(d.texto):('Não consegui responder agora ('+(d.erro||r.status)+').');
+  }catch(e){resp.content='Sem conexão com o coach. Verifique a internet e tente de novo.'}
+  S.busy=false;render();
+}
+
+async function reduzir(file,max=900,q=.75){
+  const url=URL.createObjectURL(file);
+  const img=await new Promise((ok,err)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=err;i.src=url});
+  const k=Math.min(1,max/Math.max(img.width,img.height));
+  const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
+  return c.toDataURL('image/jpeg',q);
+}
+async function analisarFoto(file){
+  if(!/^https:/.test(COACH_URL))return toast('Coach ainda não configurado.');
+  if(navigator.onLine===false)return toast('A análise da foto precisa de internet. Você pode anotar a refeição por escrito.');
+  const dataSel=S.sel;const tipo=S.ultRefT||(document.getElementById('refT')||{}).value||'Refeição';
+  S.fotoBusy=true;render();
+  try{
+    const foto=(await reduzir(file)).split(',')[1];const mini=await reduzir(file,520,.7);
+    const r=await fetch(COACH_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({foto,refeicao:tipo})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.erro||r.status);
+    const a=d.analise||{};
+    if(a.erro)toast('Não reconheci comida nessa foto. Tente de novo mais de perto.');
+    else{
+      const o=dia(dataSel);
+      const desc=(a.itens||[]).map(x=>x.nome+(x.porcao?' ('+x.porcao+')':'')).join(', ')||'Prato fotografado';
+      let fotoId=null;try{fotoId='f'+Date.now();await FDB.put(fotoId,mini);S.fotoCache[fotoId]=mini}catch(e){fotoId=null}
+      const ref={tipo,desc,carbo:Math.round(+a.carbo_total_g||0),kcal:Math.round(+a.kcal_total||0),dica:a.dica||'',fotoId};
+      if(dataSel===hoje())ref.hora=agoraHM();
+      o.refeicoes.push(ref);
+      S.fotoBusy=false;saveDia(o);toast(ref.hora?`${tipo} registrado às ${ref.hora} pela foto.`:'Refeição adicionada pela foto.');autoLembrete(o,ref);return;
+    }
+  }catch(e){toast('Não consegui analisar agora ('+e.message+').')}
+  S.fotoBusy=false;render();
+}
+
+/* ---------- inicialização ---------- */
+migrar();
+render();
+agendarLembretes();
+let diaAberto=hoje();
+document.addEventListener('visibilitychange',()=>{if(document.hidden)return;const t=hoje();if(t!==diaAberto){if(S.sel===diaAberto)S.sel=t;diaAberto=t}agendarLembretes();if(!document.activeElement||!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))render()});
+(async()=>{
+  if(!(window.claude&&claude.use))return;
+  const db=await claude.use('db');if(!db)return;
+  S.db=db;let first=true;
+  db.collection('dias').onSnapshot(snap=>{
+    const m={};snap.docs.forEach(d=>{if(d.exists)m[d.id]=clone(d.data())});
+    if(first){first=false;Object.keys(S.dias).forEach(k=>{if(!m[k]){m[k]=S.dias[k];db.collection('dias').doc(k).set(S.dias[k]).catch(()=>{})}})}
+    S.dias=m;cache();render();
+  },()=>toast('Sem conexão com a nuvem. Usando dados do aparelho.'));
+  db.doc('config/geral').onSnapshot(d=>{if(d.exists){S.config=normalizarConfig({...defaultConfig(),...clone(d.data())});cache();render()}else{db.doc('config/geral').set(S.config).catch(()=>{})}});
+})();
+
+</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}</script>
+</body>
+</html>
