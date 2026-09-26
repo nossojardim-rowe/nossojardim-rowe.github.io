@@ -300,7 +300,10 @@ function normalizarDia(k,o){
 }
 function normalizarConfig(c){
   const d=defaultConfig();c={...d,...(c||{})};
-  c.gestRef=c.gestRef&&isData(c.gestRef.data)&&+c.gestRef.semanas>0?c.gestRef:d.gestRef;
+  c.gestRef=c.gestRef&&isData(c.gestRef.data)&&+c.gestRef.semanas>0?{...c.gestRef}:{...d.gestRef};
+  { // semanas + dias sempre inteiros (corrige valores como 17,9 digitados antes)
+    const g=c.gestRef,tot=Math.round((+g.semanas)*7+(+g.dias||0));
+    g.semanas=Math.floor(tot/7);g.dias=tot%7; }
   c.metaAgua=numOk(c.metaAgua,1,30,10);
   if(!Array.isArray(c.vitaminas))c.vitaminas=d.vitaminas;
   if(!Array.isArray(c.premios))c.premios=d.premios;
@@ -485,10 +488,10 @@ function planta(stage,size,est){
 }
 
 /* ---------- gestação ---------- */
-function totalDiasGest(data){const r=S.config.gestRef;return r.semanas*7+diffDias(r.data,data||hoje())}
+function totalDiasGest(data){const r=S.config.gestRef;return Math.round(r.semanas*7+(+r.dias||0))+diffDias(r.data,data||hoje())}
 function semanaAtual(){const tot=totalDiasGest();return{s:Math.floor(tot/7),d:((tot%7)+7)%7,tot}}
 function semanaDe(data){return Math.floor(totalDiasGest(data)/7)}
-function inicioSemana(sem){const r=S.config.gestRef;return addDays(r.data,sem*7-r.semanas*7)}
+function inicioSemana(sem){const r=S.config.gestRef;return addDays(r.data,sem*7-Math.round(r.semanas*7+(+r.dias||0)))}
 function trimestre(s){return s<14?1:s<28?2:3}
 function dpp(){return addDays(hoje(),280-semanaAtual().tot)}
 /* Informação GERAL por semana (médias aproximadas; não é dado individual) */
@@ -941,7 +944,10 @@ function vEu(){
     <p class="tiny" style="margin:8px 0 0">O coach e a análise de fotos usam o plano gratuito do Gemini (Google), que pode usar o conteúdo para melhorar os produtos dele. Evite fotos com rostos ou documentos.</p>
   </details></section>
   <section class="card"><h2>Ajustes</h2>
-    <label class="f" for="cSem">Semana de gestação hoje</label><input id="cSem" type="number" min="1" max="42" value="${sa.s}">
+    <label class="f">Gestação hoje</label>
+    <div class="row"><div><label class="f" for="cSem">Semanas</label><input id="cSem" type="number" inputmode="numeric" min="1" max="42" step="1" value="${sa.s}"></div>
+    <div><label class="f" for="cDias">Dias</label><select id="cDias">${[0,1,2,3,4,5,6].map(n=>`<option value="${n}" ${n===sa.d?'selected':''}>${n} ${n===1?'dia':'dias'}</option>`).join('')}</select></div></div>
+    <p class="tiny" style="margin:6px 0 0">Ex.: 17 semanas e 6 dias. A contagem avança sozinha: ao completar 7 dias, vira a próxima semana (${SEM_EXT[parse(addDays(hoje(),7-sa.d)).getDay()]}, ${br(addDays(hoje(),7-sa.d))}).</p>
     <label class="f" for="cBebe" style="margin-top:10px">Nome do bebê (opcional)</label><input id="cBebe" value="${esc(c.nomeBebe||'')}" placeholder="Aparece no card da semana">
     <label class="f" for="cAgua" style="margin-top:10px">Meta de água (copos de 250 ml)</label><input id="cAgua" type="number" min="4" max="16" value="${c.metaAgua}">
     <label class="f" for="cIns" style="margin-top:10px">Insulina padrão</label><input id="cIns" value="${esc(c.insulinaPadrao)}">
@@ -952,6 +958,7 @@ function vEu(){
 }
 
 const SEM=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const SEM_EXT=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
 function totDia(o){const rs=(o&&o.refeicoes)||[],est=rs.filter(r=>r.carbo!=null);return{n:rs.length,est:est.length,carbo:est.reduce((a,r)=>a+(+r.carbo||0),0),kcal:est.reduce((a,r)=>a+(+r.kcal||0),0)}}
 function vPratos(){
   const N=S.pratosDias||14;const ds=[];for(let i=0;i<N;i++){const d=addDays(hoje(),-i);if(S.dias[d]&&(S.dias[d].refeicoes||[]).length)ds.push(d)}
@@ -1335,7 +1342,7 @@ document.addEventListener('click',async e=>{
   if(a==='saveP'){const n=val('eN'),c=Math.round(+val('eC'));if(!n||!(c>0))return toast('Preencha o prêmio e os pontos.');S.config.premios=S.config.premios.map(p=>p.id===b.dataset.id?{...p,nome:n,custo:c}:p);S.editP=null;document.activeElement&&document.activeElement.blur();saveConfig();toast('Prêmio atualizado.')}
   if(a==='delP'){if(!confirm('Remover este prêmio?'))return;S.config.premios=S.config.premios.filter(p=>p.id!==b.dataset.id);saveConfig()}
   if(a==='resg'){const p=S.config.premios.find(p=>p.id===b.dataset.id);if(!p||!confirm(`Resgatar "${p.nome}" por ${p.custo} pontos?`))return;S.config.resgates=[...(S.config.resgates||[]),{nome:p.nome,custo:p.custo,data:hoje()}];saveConfig();toast('Resgatado! Hora de cobrar o Gustavo 🌸')}
-  if(a==='saveCfg'){const c=S.config;const s=+val('cSem');if(s>0&&s<=42&&s!==semanaAtual().s)c.gestRef={data:hoje(),semanas:s};c.metaAgua=Math.max(4,Math.min(16,+val('cAgua')||10));c.insulinaPadrao=val('cIns')||'NPH';c.vitaminas=val('cVit').split(',').map(x=>x.trim()).filter(Boolean);c.nomeBebe=val('cBebe').slice(0,40);document.activeElement&&document.activeElement.blur();saveConfig();toast('Ajustes salvos.')}
+  if(a==='saveCfg'){const c=S.config;const s=Math.floor(+val('cSem')),dd=Math.floor(+val('cDias')||0),sa=semanaAtual();if(s>=1&&s<=42&&dd>=0&&dd<=6&&(s!==sa.s||dd!==sa.d))c.gestRef={data:hoje(),semanas:s,dias:dd};c.metaAgua=Math.max(4,Math.min(16,+val('cAgua')||10));c.insulinaPadrao=val('cIns')||'NPH';c.vitaminas=val('cVit').split(',').map(x=>x.trim()).filter(Boolean);c.nomeBebe=val('cBebe').slice(0,40);document.activeElement&&document.activeElement.blur();saveConfig();toast('Ajustes salvos.')}
   if(a==='saveMetas'){const j=+val('mJej'),p=+val('mPos');if(!(j>=60&&j<=200)||!(p>=60&&p<=250))return toast('Informe metas entre 60 e 250 mg/dL.');S.config.metas={jejum:Math.round(j),pos:Math.round(p)};document.activeElement&&document.activeElement.blur();saveConfig();toast('Metas salvas. Cores e gráficos atualizados.')}
   if(a==='ask'){const q=val('cq');if(q)ask(q)}
   // Glicemia / gráficos
