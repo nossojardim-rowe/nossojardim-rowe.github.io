@@ -1,5 +1,5 @@
 // Nosso Jardim — service worker (offline + notificações)
-const C='jardim-v7';
+const C='jardim-v8';
 const FILES=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./icon-maskable.png','./foto-perfil.jpg'];
 // cada arquivo é guardado separadamente: se um faltar no servidor, os outros continuam funcionando offline
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>Promise.all(FILES.map(f=>c.add(f).catch(()=>{})))));self.skipWaiting()});

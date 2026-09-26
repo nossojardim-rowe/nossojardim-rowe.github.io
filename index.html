@@ -61,6 +61,11 @@ button.small{padding:6px 10px;font-size:.85rem}
 button.link{background:transparent;color:var(--plum);padding:4px 0;text-decoration:underline;text-underline-offset:3px}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--plum);outline-offset:2px}
 button:disabled{opacity:.45;cursor:not-allowed}
+body.so-leitura button[hidden]{display:none}
+.syncbar{background:var(--water-soft);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:12px 0 0;font-size:.85rem}
+.synccod{font:600 1.05rem/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;color:var(--plum);word-break:break-all;margin-top:4px}
+body.so-leitura input:disabled,body.so-leitura select:disabled,body.so-leitura textarea:disabled{opacity:1;color:var(--ink);background:var(--bg)}
+body.so-leitura .drop:disabled,body.so-leitura input[type=checkbox]:disabled{opacity:1}
 input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 10px;width:100%;min-width:0}
 label.f{display:block;font-size:.82rem;color:var(--muted);font-weight:600;margin-bottom:4px}
 .grid4{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -193,7 +198,7 @@ section.card>details:first-child>summary{padding-top:0}
    Dados: localStorage "jardim-cache" = {dias, config}
           IndexedDB "jardim-fotos" (store "fotos") = fotos por id
    ===================================================================== */
-const APP_VERSAO='2.0';
+const APP_VERSAO='2.1';
 const SCHEMA=2;
 const pad=n=>String(n).padStart(2,'0');
 const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
@@ -279,7 +284,7 @@ if(primeiraVez){Object.entries(HIST).forEach(([d,g])=>{S.dias[d]={data:d,glic:g,
 
 let avisouCheio=false;
 function cache(){
-  try{localStorage.setItem('jardim-cache',JSON.stringify({dias:S.dias,config:S.config}));return true}
+  try{localStorage.setItem('jardim-cache',JSON.stringify({dias:S.dias,config:S.config}));if(typeof aposSalvar==='function')aposSalvar();return true}
   catch(e){if(!avisouCheio){avisouCheio=true;setTimeout(()=>toast('Não consegui salvar: a memória do app está cheia. Faça um backup em Eu → Dados e backup.'),50)}return false}
 }
 
@@ -931,6 +936,7 @@ function vEu(){
     Os lembretes funcionam com o app aberto ou usado recentemente; o Android pode encerrar apps em segundo plano. Cada lembrete aparece no máximo uma vez por dia e some quando o registro é feito.</p>
     ${L.ativo?`<button class="ghost small" style="margin-top:8px" data-act="testeNotif">Testar notificação</button>`:''}
   </details></section>
+  ${typeof cardSync==='function'?cardSync():''}
   <section class="card"><details ${S.abrirBackup?'open':''}><summary>📦 Dados e backup</summary>
     <p class="muted" style="margin:8px 0">Seus registros ficam só neste celular. Um backup guarda tudo em um arquivo: glicemias, insulina, refeições e estimativas, água, atividades, vitaminas, peso, pontos, prêmios e resgates, jardim, álbum, lembretes, metas e configurações.</p>
     <label class="check"><input type="checkbox" id="bkFotos" ${S.bkSemFotos?'':'checked'}> Incluir fotos (refeições e álbum)</label>
@@ -940,7 +946,8 @@ function vEu(){
   </details></section>
   <section class="card"><details><summary>🔒 Privacidade e internet</summary>
     <div class="kv" style="display:block"><b>Funciona sem internet</b><div class="muted">Registros, pontos, jardim, gráficos, Descobertas, relatório em PDF, álbum, lembretes e backup. Tudo é calculado no celular.</div></div>
-    <div class="kv" style="display:block"><b>Precisa de internet</b><div class="muted">Coach: envia a pergunta e um resumo dos últimos 7 dias (glicemias, refeições, água, atividade, insulina registrada e metas). Foto do prato: envia só a foto reduzida do prato. O álbum, as memórias, o peso e o backup nunca são enviados.</div></div>
+    <div class="kv" style="display:block"><b>Precisa de internet</b><div class="muted">Coach: envia a pergunta e um resumo dos últimos 7 dias (glicemias, refeições, água, atividade, insulina registrada e metas). Foto do prato: envia só a foto reduzida do prato. O álbum, as memórias, o peso e o backup nunca são enviados ao coach.</div></div>
+    <div class="kv" style="display:block"><b>Compartilhar com outro celular</b><div class="muted">Só se for ligado em Eu → Compartilhar: todos os registros, fotos e álbum são copiados para o armazenamento do Worker (Cloudflare), protegidos por um código secreto, para o outro celular ver. Ao parar de compartilhar, essa cópia é apagada.</div></div>
     <p class="tiny" style="margin:8px 0 0">O coach e a análise de fotos usam o plano gratuito do Gemini (Google), que pode usar o conteúdo para melhorar os produtos dele. Evite fotos com rostos ou documentos.</p>
   </details></section>
   <section class="card"><h2>Ajustes</h2>
@@ -1000,6 +1007,7 @@ function render(){
   renderHeader();
   document.getElementById('tabs').innerHTML=TABS.map(([k,n,i])=>`<button data-tab="${k}" aria-current="${S.tab===k&&!S.sub}"><span aria-hidden="true">${i}</span>${n}</button>`).join('');
   const ch=document.getElementById('chat');if(ch)ch.scrollIntoView({block:'end'});
+  if(typeof aposRender==='function')aposRender();
 }
 function renderHeader(){
   const t=totais(),sa=semanaAtual();
@@ -1190,6 +1198,7 @@ function itensDeHoje(){
 }
 function agendarLembretes(){
   lembTimers.splice(0).forEach(clearTimeout);
+  if(typeof modoSync==='function'&&modoSync()==='acompanha')return; // no celular que só acompanha, não há lembretes
   if(limparLembretes())cache();
   itensDeHoje().forEach(x=>{if(x.quando>0&&x.quando<864e5)lembTimers.push(setTimeout(()=>disparar(x),x.quando))});
   // reagenda à meia-noite
@@ -1471,6 +1480,234 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)return;cons
     S.dias=m;cache();render();
   },()=>toast('Sem conexão com a nuvem. Usando dados do aparelho.'));
   db.doc('config/geral').onSnapshot(d=>{if(d.exists){S.config=normalizarConfig({...defaultConfig(),...clone(d.data())});cache();render()}else{db.doc('config/geral').set(S.config).catch(()=>{})}});
+})();
+
+/* =====================================================================
+   Compartilhar entre celulares (opcional)
+   - Celular da Thaismara ("envia"): a cada registro, envia uma cópia dos
+     dados e das fotos para o armazenamento do Worker (Cloudflare KV),
+     protegida por um código secreto.
+   - Outro celular ("acompanha"): baixa a cópia e mostra tudo, só leitura.
+   Estado local em "jardim-sync" (fora do backup e dos dados do app).
+   Obs.: usa "var" porque cache()/render() podem chamar estas funções
+   antes deste trecho terminar de carregar.
+   ===================================================================== */
+var syncT=null,syncEnviando=false,syncPuxando=false,syncFaltam={},syncUltimoHash=null;
+// Ações e campos que continuam liberados no celular que só acompanha
+function syncAcaoLivre(a){return/^sync/.test(a||'')||['dia','verPrato','fechar','maisDias','gper','gser','histTudo','corrMais','relatorio','voltar','rper','gerarRel','relAbrir','relBaixar','relComp','album','ask','fecharDlg','backup','bkSalvar','bkComp'].includes(a)}
+function syncCampoLivre(id){return['cq','rIni','rFim','rObs','bkFotos','syncCod'].includes(id)}
+
+function syncEstado(){
+  let s=null;try{s=JSON.parse(localStorage.getItem('jardim-sync')||'null')}catch(e){}
+  if(!s||typeof s!=='object')s={};
+  if(!['off','envia','acompanha'].includes(s.modo))s.modo='off';
+  if(!Array.isArray(s.fotosEnviadas))s.fotosEnviadas=[];
+  return s;
+}
+function syncSalvar(s){try{localStorage.setItem('jardim-sync',JSON.stringify(s))}catch(e){}}
+function modoSync(){return syncEstado().modo}
+function syncCanon(c){return String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function syncFormatar(c){return(syncCanon(c).match(/.{1,4}/g)||[]).join('-')}
+function syncNovoCodigo(){
+  const r=new Uint8Array(16);crypto.getRandomValues(r);
+  const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let t='';r.forEach(b=>t+=A[b%32]);
+  return 'JARD-'+t.match(/.{4}/g).join('-');
+}
+function syncHash(t){let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return h+':'+t.length}
+async function syncPost(corpo){
+  const r=await fetch(COACH_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)});
+  let d={};try{d=await r.json()}catch(e){}
+  if(!r.ok){const e=new Error(d.erro||('erro '+r.status));e.status=r.status;throw e}
+  return d;
+}
+function syncHora(ms){if(!ms)return'';const d=new Date(ms);const hm=pad(d.getHours())+':'+pad(d.getMinutes());return iso(d)===hoje()?'hoje às '+hm:br(iso(d))+' às '+hm}
+
+/* ---------- celular que envia (Thaismara) ---------- */
+function aposSalvar(){if(modoSync()==='envia')agendarEnvio(4000)}
+function agendarEnvio(ms){clearTimeout(syncT);syncT=setTimeout(enviarAgora,ms==null?4000:ms)}
+function idsDeFotos(){
+  const ids=new Set();
+  Object.values(S.dias||{}).forEach(o=>(o&&o.refeicoes||[]).forEach(r=>{if(r&&r.fotoId)ids.add(r.fotoId)}));
+  Object.values((S.config&&S.config.album)||{}).forEach(a=>{if(a&&a.fotoId)ids.add(a.fotoId)});
+  return[...ids];
+}
+async function enviarAgora(forcar){
+  const s=syncEstado();if(s.modo!=='envia'||!s.codigo)return;
+  if(syncEnviando){agendarEnvio(3000);return}
+  if(navigator.onLine===false){s.pendente=true;syncSalvar(s);return}
+  syncEnviando=true;
+  try{
+    const txt=JSON.stringify({dias:S.dias,config:S.config});const h=syncHash(txt);
+    if(forcar||h!==s.hash||s.pendente){
+      await syncPost({acao:'sync-put',codigo:syncCanon(s.codigo),dados:{dias:S.dias,config:S.config,versaoApp:APP_VERSAO}});
+      const n=syncEstado();n.hash=h;n.pendente=false;n.erro='';n.ultimoEnvio=Date.now();syncSalvar(n);
+    }
+    // fotos que o outro celular ainda não tem
+    const env=new Set(syncEstado().fotosEnviadas);
+    for(const id of idsDeFotos()){
+      if(env.has(id))continue;
+      let img=null;try{img=S.fotoCache[id]||await FDB.get(id)}catch(e){}
+      if(img)await syncPost({acao:'sync-foto-put',codigo:syncCanon(s.codigo),id,img});
+      env.add(id);const n=syncEstado();n.fotosEnviadas=[...env];n.ultimoEnvio=Date.now();syncSalvar(n);
+    }
+  }catch(e){const n=syncEstado();n.pendente=true;n.erro=e.message||'sem conexão';syncSalvar(n);clearTimeout(syncT);syncT=setTimeout(enviarAgora,5*60e3)}
+  syncEnviando=false;
+  if(S.tab==='eu'&&!S.sub)atualizarCardSync();
+}
+
+/* ---------- celular que acompanha (Gustavo) ---------- */
+async function puxarAgora(avisar){
+  const s=syncEstado();if(s.modo!=='acompanha'||!s.codigo||syncPuxando)return;
+  if(navigator.onLine===false){if(avisar)toast('Sem internet. Mostrando a última atualização.');return}
+  syncPuxando=true;
+  try{
+    const d=await syncPost({acao:'sync-get',codigo:syncCanon(s.codigo)});
+    const n=syncEstado();n.ultimaLeitura=Date.now();n.enviadoEm=d.enviadoEm||null;n.erro='';syncSalvar(n);
+    const dados=d.dados||{};
+    if(dados.dias&&dados.config){
+      const txt=JSON.stringify({dias:dados.dias,config:dados.config});const h=syncHash(txt);
+      if(h!==syncUltimoHash){
+        syncUltimoHash=h;
+        const dias={};Object.keys(dados.dias).forEach(k=>{if(isData(k))dias[k]=normalizarDia(k,dados.dias[k])});
+        S.dias=dias;S.config=normalizarConfig({...defaultConfig(),...clone(dados.config)});
+        cache();render();
+      }else atualizarCardSync();
+      baixarFotosFaltando();
+    }
+    if(avisar)toast('Atualizado.');
+  }catch(e){
+    const n=syncEstado();n.erro=e.status===404?'ainda não há dados com este código':(e.message||'sem conexão');syncSalvar(n);
+    atualizarCardSync();
+    if(avisar)toast('Não consegui atualizar ('+n.erro+').');
+  }
+  syncPuxando=false;
+}
+async function baixarFotosFaltando(){
+  const s=syncEstado();let nova=false;
+  for(const id of idsDeFotos()){
+    if(syncFaltam[id]||S.fotoCache[id])continue;
+    let tem=null;try{tem=await FDB.get(id)}catch(e){}
+    if(tem){S.fotoCache[id]=tem;continue}
+    try{const d=await syncPost({acao:'sync-foto-get',codigo:syncCanon(s.codigo),id});
+      if(d.img){await FDB.put(id,d.img).catch(()=>{});S.fotoCache[id]=d.img;nova=true}else syncFaltam[id]=true}
+    catch(e){syncFaltam[id]=true;if(e.status!==404)break}
+  }
+  if(nova)render();
+}
+
+/* ---------- modo só leitura ---------- */
+function aposRender(){
+  const ro=modoSync()==='acompanha';
+  document.body.classList.toggle('so-leitura',ro);
+  if(!ro)return;
+  const v=document.getElementById('view');if(!v)return;
+  v.querySelectorAll('button[data-act]').forEach(b=>{if(!syncAcaoLivre(b.dataset.act)){b.disabled=true;if(!b.classList.contains('drop'))b.hidden=true}});
+  v.querySelectorAll('input,select,textarea').forEach(el=>{if(!syncCampoLivre(el.id)){el.disabled=true;el.placeholder=''}});
+  v.insertAdjacentHTML('afterbegin',`<div class="syncbar" id="syncBar">${syncBarTxt()}</div>`);
+}
+function syncBarTxt(){const s=syncEstado();return`👀 Acompanhando os registros da Thaismara${s.enviadoEm?' · enviado '+syncHora(s.enviadoEm):''}${s.erro?' · <b>'+esc(s.erro)+'</b>':''}`}
+// Segurança extra: no modo acompanhar, bloqueia qualquer ação que mude dados
+document.addEventListener('click',e=>{
+  if(modoSync()!=='acompanha')return;
+  const b=e.target.closest&&e.target.closest('button[data-act]');if(!b)return;
+  if(syncAcaoLivre(b.dataset.act))return;
+  e.stopImmediatePropagation();e.preventDefault();toast('Este celular só acompanha. Os registros são feitos no celular da Thaismara.');
+},true);
+document.addEventListener('change',e=>{
+  if(modoSync()!=='acompanha')return;
+  if(syncCampoLivre(e.target.id))return;
+  e.stopImmediatePropagation();
+},true);
+
+/* ---------- tela (Eu → Compartilhar) ---------- */
+function cardSync(){
+  const s=syncEstado();let corpo='';
+  if(s.modo==='off'){
+    corpo=`<p class="muted" style="margin:8px 0">Permite que outro celular (por exemplo, o do Gustavo) veja os registros da Thaismara, com fotos, sem poder alterar nada. Os dados ficam guardados no Worker do coach (Cloudflare), protegidos por um código secreto.</p>
+    <div class="btnrow" style="flex-direction:column;align-items:stretch">
+      <button data-act="syncEnviar">📤 Este é o celular da Thaismara (enviar registros)</button>
+      <button class="ghost" data-act="syncQuer">👀 Só acompanhar (outro celular)</button></div>
+    ${S.syncDigitar?`<label class="f" for="syncCod" style="margin-top:10px">Código que aparece no celular da Thaismara</label>
+      <input id="syncCod" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="JARD-XXXX-XXXX-XXXX-XXXX">
+      <div class="btnrow"><button data-act="syncConectar">Conectar</button><button class="ghost" data-act="syncCancelar">Cancelar</button></div>`:''}`;
+  }else if(s.modo==='envia'){
+    const qtd=s.fotosEnviadas.length;
+    corpo=`<p class="muted" style="margin:8px 0">📤 Este celular envia os registros automaticamente sempre que algo é salvo (precisa de internet; se estiver sem, envia depois).</p>
+    <div class="kv" style="display:block"><b>Código para o outro celular</b><div class="synccod">${esc(s.codigo)}</div></div>
+    <div class="btnrow"><button class="ghost small" data-act="syncCompartilhar">📋 Compartilhar código</button><button class="ghost small" data-act="syncEnviarAgora">🔄 Enviar agora</button></div>
+    <p class="tiny" id="syncStatus" style="margin:8px 0 0">${syncStatusTxt(s)}</p>
+    <p class="tiny" style="margin:6px 0 0">Quem tiver este código consegue ver os registros e fotos. Envie só para o Gustavo.</p>
+    <button class="ghost small" style="margin-top:8px" data-act="syncParar">Parar de compartilhar</button>`;
+  }else{
+    corpo=`<p class="muted" style="margin:8px 0">👀 Este celular só acompanha os registros da Thaismara. Ele se atualiza sozinho a cada minuto com o app aberto. Não dá para registrar nada por aqui e não há lembretes.</p>
+    <p class="tiny" id="syncStatus" style="margin:0">${syncStatusTxt(s)}</p>
+    <div class="btnrow"><button class="ghost small" data-act="syncAtualizar">🔄 Atualizar agora</button><button class="ghost small" data-act="syncParar">Parar de acompanhar</button></div>`;
+  }
+  return`<section class="card"><details ${S.abrirSync||s.modo!=='off'&&S.abrirSync!==false?'open':''} id="syncCard"><summary>👥 Compartilhar com outro celular</summary>${corpo}</details></section>`;
+}
+function syncStatusTxt(s){
+  if(s.modo==='envia'){
+    const f=s.fotosEnviadas.length;
+    return(s.ultimoEnvio?'Último envio: '+syncHora(s.ultimoEnvio)+'.':'Ainda não enviado.')+(f?` Fotos enviadas: ${f}.`:'')+(s.pendente?' ⏳ Há alterações esperando internet'+(s.erro?' ('+esc(s.erro)+')':'')+'.':'');
+  }
+  if(s.modo==='acompanha')return(s.enviadoEm?'Dados enviados pela Thaismara '+syncHora(s.enviadoEm)+'.':'Aguardando dados.')+(s.ultimaLeitura?' Verificado '+syncHora(s.ultimaLeitura)+'.':'')+(s.erro?' ⚠️ '+esc(s.erro)+'.':'');
+  return'';
+}
+function atualizarCardSync(){const el=document.getElementById('syncStatus');if(el)el.innerHTML=syncStatusTxt(syncEstado());const b=document.getElementById('syncBar');if(b)b.innerHTML=syncBarTxt()}
+
+document.addEventListener('click',async e=>{
+  const b=e.target.closest&&e.target.closest('button[data-act^="sync"]');if(!b)return;
+  const a=b.dataset.act;const s=syncEstado();S.abrirSync=true;
+  if(a==='syncEnviar'){
+    if(!confirm('Ativar o envio? Os registros e fotos deste celular serão copiados para o armazenamento do coach (Cloudflare), protegidos por um código, para o outro celular acompanhar.'))return;
+    const n={modo:'envia',codigo:syncNovoCodigo(),fotosEnviadas:[],pendente:true};syncSalvar(n);render();toast('Enviando pela primeira vez…');
+    await enviarAgora(true);render();
+    const f=syncEstado();toast(f.pendente?'Não consegui enviar agora ('+(f.erro||'sem conexão')+'). Tento de novo depois.':'Pronto! Agora compartilhe o código com o Gustavo.',4500);
+  }
+  if(a==='syncQuer'){S.syncDigitar=true;render();const i=document.getElementById('syncCod');if(i)i.focus()}
+  if(a==='syncCancelar'){S.syncDigitar=false;render()}
+  if(a==='syncConectar'){
+    const cod=syncCanon((document.getElementById('syncCod')||{}).value);
+    if(cod.length<20)return toast('Digite o código completo (JARD-XXXX-XXXX-XXXX-XXXX).');
+    if(navigator.onLine===false)return toast('Precisa de internet para conectar.');
+    toast('Verificando o código…');
+    try{await syncPost({acao:'sync-get',codigo:cod})}
+    catch(err){return toast(err.status===404?'Código não encontrado. Confira o código e se o celular da Thaismara já enviou os dados.':'Não consegui conectar ('+err.message+').',4500)}
+    if(!confirm('Este celular vai passar a mostrar os registros da Thaismara, só para acompanhar (sem registrar nada). Os dados que já estão neste celular ficam guardados numa cópia de segurança. Continuar?'))return;
+    try{const raw=localStorage.getItem('jardim-cache');if(raw&&!localStorage.getItem('jardim-cache-antes-acompanhar'))localStorage.setItem('jardim-cache-antes-acompanhar',raw)}catch(err){}
+    syncSalvar({modo:'acompanha',codigo:syncFormatar(cod),fotosEnviadas:[]});
+    S.syncDigitar=false;syncUltimoHash=null;syncFaltam={};agendarLembretes();
+    document.activeElement&&document.activeElement.blur();
+    await puxarAgora(false);S.tab='hoje';S.sel=hoje();render();window.scrollTo(0,0);toast('Conectado! Você está vendo os registros da Thaismara 💗',4000);
+  }
+  if(a==='syncCompartilhar'){
+    const txt=`Código do Nosso Jardim para acompanhar os registros: ${s.codigo}\nNo app: Eu → Compartilhar com outro celular → Só acompanhar.`;
+    try{if(navigator.share){await navigator.share({text:txt});return}}catch(err){if(err&&err.name==='AbortError')return}
+    try{await navigator.clipboard.writeText(s.codigo);toast('Código copiado.')}catch(err){toast('Anote o código: '+s.codigo,6000)}
+  }
+  if(a==='syncEnviarAgora'){toast('Enviando…');await enviarAgora(true);const f=syncEstado();toast(f.pendente?'Não consegui enviar agora ('+(f.erro||'sem conexão')+').':'Enviado.');render()}
+  if(a==='syncAtualizar'){await puxarAgora(true)}
+  if(a==='syncParar'){
+    if(s.modo==='envia'){
+      if(!confirm('Parar de compartilhar? A cópia guardada no Cloudflare será apagada e o outro celular deixa de receber atualizações. Os registros deste celular não mudam.'))return;
+      try{await syncPost({acao:'sync-apagar',codigo:syncCanon(s.codigo)})}catch(err){if(!confirm('Não consegui apagar a cópia online agora ('+err.message+'). Parar mesmo assim?'))return}
+      clearTimeout(syncT);syncSalvar({modo:'off',fotosEnviadas:[]});render();toast('Compartilhamento desligado.');
+    }else{
+      if(!confirm('Parar de acompanhar? Este celular volta a funcionar normalmente, começando com a última cópia recebida dos registros.'))return;
+      syncSalvar({modo:'off',fotosEnviadas:[]});agendarLembretes();render();toast('Este celular não está mais acompanhando.');
+    }
+  }
+});
+
+/* ---------- início ---------- */
+(function iniciarSync(){
+  const m=modoSync();
+  if(m==='envia')agendarEnvio(2000);
+  if(m==='acompanha'){agendarLembretes();render();puxarAgora(false)}
+  setInterval(()=>{if(!document.hidden&&modoSync()==='acompanha')puxarAgora(false)},60e3);
+  setInterval(()=>{const s=syncEstado();if(s.modo==='envia'&&s.pendente)enviarAgora()},5*60e3);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)return;const m=modoSync();if(m==='acompanha')puxarAgora(false);else if(m==='envia')agendarEnvio(1500)});
+  window.addEventListener('online',()=>{const m=modoSync();if(m==='acompanha')puxarAgora(false);else if(m==='envia')agendarEnvio(1000)});
 })();
 
 </script>
