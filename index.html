@@ -64,6 +64,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
 body.so-leitura button[hidden]{display:none}
 .hbtn{background:none;border:1px dashed var(--line);color:var(--muted);font:inherit;font-size:.78rem;padding:1px 7px;border-radius:9px;min-height:0;width:auto;cursor:pointer}
 body.so-leitura .hbtn:disabled{opacity:1;border-color:transparent;cursor:default}
+.acoes{display:flex;flex-direction:column;align-items:center;gap:2px}
+.acoes .x{font-size:.95rem}
+li.editref{background:var(--plum-soft);border-radius:12px;padding:10px;margin:6px 0}
 .syncbar{background:var(--water-soft);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:12px 0 0;font-size:.85rem}
 .synccod{font:600 1.05rem/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;color:var(--plum);word-break:break-all;margin-top:4px}
 body.so-leitura input:disabled,body.so-leitura select:disabled,body.so-leitura textarea:disabled{opacity:1;color:var(--ink);background:var(--bg)}
@@ -200,7 +203,7 @@ section.card>details:first-child>summary{padding-top:0}
    Dados: localStorage "jardim-cache" = {dias, config}
           IndexedDB "jardim-fotos" (store "fotos") = fotos por id
    ===================================================================== */
-const APP_VERSAO='2.2';
+const APP_VERSAO='2.3';
 const SCHEMA=2;
 const pad=n=>String(n).padStart(2,'0');
 const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
@@ -656,6 +659,19 @@ function linhaPos(data,r,i,comBotao){
   }
   return `<div class="pos"><span class="pill wait">↓ glicemia 2h: a anotar</span>${b}</div>`;
 }
+function formRef(x,i){
+  return`<li class="editref"><div style="width:100%">
+    <div class="refrow">${x.fotoId?`<img class="thumb" data-foto="${esc(x.fotoId)}" alt="">`:''}<b>Editar ${esc(x.tipo)}</b></div>
+    <label class="f" for="erD" style="margin-top:8px">O que comeu</label><textarea id="erD" rows="3">${esc(x.desc)}</textarea>
+    <p class="tiny" style="margin:4px 0 0">Pesou ou sabe a quantidade? Escreva aqui (ex.: macarrão 180 g, 1 concha de molho) e toque em Recalcular.</p>
+    <div class="row" style="margin-top:8px"><div><label class="f" for="erC">Carboidrato (g)</label><input id="erC" type="number" inputmode="decimal" min="0" max="500" value="${x.carbo!=null?esc(x.carbo):''}"></div>
+    <div><label class="f" for="erK">Calorias (kcal)</label><input id="erK" type="number" inputmode="decimal" min="0" max="5000" value="${x.kcal!=null?esc(x.kcal):''}"></div></div>
+    <label class="f" for="erDica" style="margin-top:8px">Dica</label><textarea id="erDica" rows="2" placeholder="(opcional)">${esc(x.dica||'')}</textarea>
+    <button class="ghost" style="width:100%;margin-top:10px" data-act="recalcRef" data-i="${i}" ${S.recalcBusy?'disabled':''}>${S.recalcBusy?'Recalculando…':'🔄 Recalcular com IA usando o texto'+(x.fotoId?' e a foto':'')}</button>
+    <div class="btnrow"><button data-act="saveRef" data-i="${i}">Salvar</button><button class="ghost" data-act="cancelRef">Cancelar</button></div>
+    <p class="tiny" style="margin:6px 0 0">Os valores são estimativas para acompanhamento; não use para ajustar dose de insulina.</p>
+  </div></li>`;
+}
 function horaMais(hm,min){const[h,m]=hm.split(':').map(Number);const t=Math.min(23*60+59,h*60+m+min);return pad(Math.floor(t/60))+':'+pad(t%60)}
 
 function cardBebe(compacto){
@@ -706,12 +722,13 @@ function vHoje(){
     <div class="row"><div><label class="f" for="refT">Refeição</label><select id="refT">${REF.map(r=>`<option ${r===S.ultRefT?'selected':''}>${r}</option>`).join('')}</select></div>
     <div class="nf" style="width:40%"><label class="f" for="refH">Horário</label><input id="refH" type="time" value="${esc(S.refH||'')}"></div></div>
     <p class="tiny" style="margin:4px 0 0">${S.sel===hoje()?'Vazio = agora. Foto da galeria: o app tenta usar o horário em que a foto foi tirada.':'Informe o horário, se souber.'}</p>
-    <label class="f" for="refD" style="margin-top:8px">O que comeu</label><input id="refD" placeholder="ex.: 1 pão integral, ovo, café">
+    <label class="f" for="refD" style="margin-top:8px">O que comeu</label><input id="refD" value="${esc(S.refD||'')}" placeholder="ex.: 1 pão integral, ovo, café">
+    <p class="tiny" style="margin:4px 0 0">Vai usar foto e pesou a comida? Escreva aqui antes (ex.: macarrão 180 g) — a IA usa essa informação. Depois, toque em ✏️ para corrigir qualquer refeição.</p>
     <button style="margin-top:10px;width:100%" data-act="addRef">Adicionar refeição</button>
     <div class="row" style="margin-top:8px">${S.fotoBusy?'<button class="ghost" disabled>Analisando o prato…</button>':'<button class="ghost" data-act="foto">📷 Tirar foto</button><button class="ghost" data-act="galeria">🖼️ Da galeria</button>'}</div>
     <input id="fotoIn" type="file" accept="image/*" capture="environment" hidden>
     <input id="galIn" type="file" accept="image/*" hidden>
-    <ul class="list">${o.refeicoes.map((x,i)=>`<li><span class="refrow">${x.fotoId?`<img class="thumb" data-foto="${esc(x.fotoId)}" alt="">`:''}<span><b>${esc(x.tipo)}</b> <button class="hbtn" data-act="editHora" data-i="${i}" aria-label="Alterar horário">🕒 ${x.hora?esc(x.hora):'horário?'}</button> · ${esc(x.desc)}${x.carbo!=null?`<br><span class="muted">≈ ${esc(x.carbo)} g de carboidrato · ${esc(x.kcal)} kcal</span>`:''}${x.dica?`<br><span class="muted">💡 ${esc(x.dica)}</span>`:''}${linhaPos(S.sel,x,i,true)}</span></span><button class="x" data-act="del" data-k="refeicoes" data-i="${i}" aria-label="Remover">×</button></li>`).join('')}</ul>
+    <ul class="list">${o.refeicoes.map((x,i)=>S.editRef&&S.editRef.d===S.sel&&S.editRef.i===i?formRef(x,i):`<li><span class="refrow">${x.fotoId?`<img class="thumb" data-foto="${esc(x.fotoId)}" alt="">`:''}<span><b>${esc(x.tipo)}</b> <button class="hbtn" data-act="editHora" data-i="${i}" aria-label="Alterar horário">🕒 ${x.hora?esc(x.hora):'horário?'}</button> · ${esc(x.desc)}${x.carbo!=null?`<br><span class="muted">≈ ${esc(x.carbo)} g de carboidrato · ${esc(x.kcal)} kcal</span>`:''}${x.dica?`<br><span class="muted">💡 ${esc(x.dica)}</span>`:''}${x.editado?`<br><span class="tiny">✏️ ajustado por você</span>`:''}${linhaPos(S.sel,x,i,true)}</span></span><span class="acoes"><button class="x" data-act="editRef" data-i="${i}" aria-label="Editar">✏️</button><button class="x" data-act="del" data-k="refeicoes" data-i="${i}" aria-label="Remover">×</button></span></li>`).join('')}</ul>
     <p class="muted">A foto dá uma estimativa aproximada para entender o prato (precisa de internet). Não use para ajustar dose de insulina.</p>
   </section>
   <section class="card"><h2>Água · ${agua} de ${meta} copos</h2>
@@ -984,7 +1001,7 @@ function vPratos(){
     ${r.carbo!=null?`<p><b>≈ ${esc(r.carbo)} g de carboidrato</b> · ${esc(r.kcal)} kcal</p>`:''}
     ${r.dica?`<p class="muted">💡 ${esc(r.dica)}</p>`:''}
     ${linhaPos(S.modal.d,r,S.modal.i,false)}
-    <button class="ghost" style="width:100%;margin-top:12px" data-act="fechar">Fechar</button></div></div>`}
+    <div class="btnrow" style="margin-top:12px"><button class="ghost" data-act="editRefModal">✏️ Editar</button><button class="ghost" data-act="fechar">Fechar</button></div></div></div>`}
   return `
   <section class="card"><h2>Carboidratos por dia (estimados)</h2>${chart}
     <p class="muted">Carboidrato é o que mais pesa na glicemia; as calorias aparecem só como referência. Tudo é estimativa pela foto.</p></section>
@@ -1314,6 +1331,7 @@ document.addEventListener('change',e=>{
   const el=e.target;
   if(el.id==='fotoIn'||el.id==='galIn'){const f=el.files&&el.files[0];el.value='';if(f)analisarFoto(f,el.id==='galIn');return}
   if(el.id==='refH'){S.refH=el.value;return}
+  if(el.id==='refD'){S.refD=el.value;return}
   if(el.id==='refT'){S.ultRefT=el.value;return}
   if(el.id==='bkIn'){const f=el.files&&el.files[0];el.value='';if(f)lerArquivoBackup(f);return}
   if(el.id==='albIn'||el.id==='albGalIn'){const f=el.files&&el.files[0];el.value='';if(f)fotoAlbum(f);return}
@@ -1344,7 +1362,7 @@ document.addEventListener('click',async e=>{
   if(a==='galeria'){S.ultRefT=val('refT');document.getElementById('galIn').click()}
   if(a==='addRef'){const d=val('refD');if(!d)return toast('Escreva o que ela comeu.');const r={tipo:val('refT'),desc:d};const h=horaValida(val('refH'));
     if(h&&S.sel===hoje()&&h>agoraHM())return toast('Esse horário ainda não chegou. Confira o horário.');
-    if(h)r.hora=h;else if(S.sel===hoje())r.hora=agoraHM();S.ultRefT=r.tipo;S.refH='';o.refeicoes.push(r);saveDia(o);
+    if(h)r.hora=h;else if(S.sel===hoje())r.hora=agoraHM();S.ultRefT=r.tipo;S.refH='';S.refD='';o.refeicoes.push(r);saveDia(o);
     toast(r.hora?`${r.tipo} registrado às ${r.hora}.`+avisoPassou(r):`${r.tipo} registrado.`,3500);autoLembrete(o,r)}
   if(a==='editHora'){const r=o.refeicoes[+b.dataset.i];if(!r)return;
     const txt=prompt(`Horário em que comeu (${r.tipo}), ex.: 08:15`,r.hora||'');if(txt===null)return;
@@ -1356,6 +1374,17 @@ document.addEventListener('click',async e=>{
   if(a==='lembrar2h'){const r=o.refeicoes[+b.dataset.i];if(r)criarLembrete2h(r.tipo,r.hora)}
   if(a==='addAt'){const t=val('atT'),m=val('atM');if(!t||!m)return toast('Preencha atividade e minutos.');o.atividade.push({tipo:t,min:+m});saveDia(o)}
   if(a==='del'){const it=o[b.dataset.k][+b.dataset.i];if(it&&it.fotoId){FDB.del(it.fotoId).catch(()=>{});delete S.fotoCache[it.fotoId]}o[b.dataset.k].splice(+b.dataset.i,1);saveDia(o)}
+  if(a==='editRef'){S.editRef={d:S.sel,i:+b.dataset.i};render();const t=document.getElementById('erD');if(t)t.scrollIntoView({block:'center'})}
+  if(a==='editRefModal'&&S.modal){S.sel=S.modal.d;S.editRef={d:S.modal.d,i:S.modal.i};S.modal=null;S.tab='hoje';render();const t=document.getElementById('erD');if(t)t.scrollIntoView({block:'center'})}
+  if(a==='cancelRef'){S.editRef=null;render()}
+  if(a==='saveRef'){const r=o.refeicoes[+b.dataset.i];if(!r)return;const d=val('erD');if(!d)return toast('Escreva o que ela comeu.');
+    const num=(id,mx)=>{const v=val(id).replace(',','.');if(v==='')return null;const n=Math.round(+v);return n>=0&&n<=mx?n:NaN};
+    const c=num('erC',500),k=num('erK',5000);if(Number.isNaN(c)||Number.isNaN(k))return toast('Confira os números de carboidrato e calorias.');
+    const antes=JSON.stringify([r.desc,r.carbo,r.kcal,r.dica||'']);
+    r.desc=d.slice(0,500);if(c==null)delete r.carbo;else r.carbo=c;if(k==null)delete r.kcal;else r.kcal=k;const dc=val('erDica');if(dc)r.dica=dc.slice(0,300);else delete r.dica;
+    if(JSON.stringify([r.desc,r.carbo,r.kcal,r.dica||''])!==antes)r.editado=true;
+    S.editRef=null;document.activeElement&&document.activeElement.blur();saveDia(o);toast('Refeição atualizada.')}
+  if(a==='recalcRef'){const r=o.refeicoes[+b.dataset.i];if(r)recalcularRef(r)}
   if(a==='verPrato'){S.modal={d:b.dataset.d,i:+b.dataset.i};render()}
   if(a==='fechar'){S.modal=null;render()}
   if(a==='maisDias'){S.pratosDias=(S.pratosDias||14)+14;render()}
@@ -1464,10 +1493,32 @@ async function reduzir(file,max=900,q=.75){
   c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
   return c.toDataURL('image/jpeg',q);
 }
+async function estimar(corpo){
+  const r=await fetch(COACH_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok){if(corpo.descricao&&!corpo.foto&&/sem pergunta/.test(d.erro||''))throw new Error('atualize o Worker do coach');throw new Error(d.erro||r.status)}
+  return d;
+}
+async function recalcularRef(r){
+  if(navigator.onLine===false)return toast('Recalcular precisa de internet. Você pode digitar os valores à mão.');
+  const txt=(document.getElementById('erD')||{}).value||r.desc||'';if(!txt.trim()&&!r.fotoId)return toast('Escreva o que ela comeu.');
+  S.recalcBusy=true;const bt=document.querySelector('[data-act=recalcRef]');if(bt){bt.disabled=true;bt.textContent='Recalculando…'}
+  try{
+    let foto=null;if(r.fotoId){try{const img=S.fotoCache[r.fotoId]||await FDB.get(r.fotoId);if(img)foto=String(img).split(',')[1]}catch(e){}}
+    const d=await estimar(foto?{foto,refeicao:r.tipo,obs:txt.slice(0,400)}:{descricao:txt.slice(0,400),refeicao:r.tipo});
+    const a=d.analise||{};if(a.erro)throw new Error('não reconheci comida');
+    const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v};
+    set('erC',Math.round(+a.carbo_total_g||0));set('erK',Math.round(+a.kcal_total||0));if(a.dica)set('erDica',a.dica);
+    if(foto&&!d.obsUsada)toast('Recalculado só pela foto. Para a IA considerar o que você escreveu, atualize o Worker do coach.',5500);
+    else toast('Valores recalculados. Confira e toque em Salvar.',4000);
+  }catch(e){toast('Não consegui recalcular ('+e.message+'). Você pode digitar os valores.',4500)}
+  S.recalcBusy=false;const b2=document.querySelector('[data-act=recalcRef]');if(b2){b2.disabled=false;b2.textContent='🔄 Recalcular com IA usando o texto'+(r.fotoId?' e a foto':'')}
+}
 async function analisarFoto(file,daGaleria){
   if(!/^https:/.test(COACH_URL))return toast('Coach ainda não configurado.');
   if(navigator.onLine===false)return toast('A análise da foto precisa de internet. Você pode anotar a refeição por escrito.');
   const dataSel=S.sel;const tipo=(document.getElementById('refT')||{}).value||S.ultRefT||'Refeição';
+  const obs=((document.getElementById('refD')||{}).value||S.refD||'').trim().slice(0,400);
   let hora=horaValida((document.getElementById('refH')||{}).value||S.refH||''),origem='informado';
   if(!hora&&daGaleria){hora=await horaDaFoto(file,dataSel);origem='da foto'}
   if(!hora&&dataSel===hoje()){hora=agoraHM();origem='agora'}
@@ -1475,18 +1526,16 @@ async function analisarFoto(file,daGaleria){
   S.fotoBusy=true;render();
   try{
     const foto=(await reduzir(file)).split(',')[1];const mini=await reduzir(file,520,.7);
-    const r=await fetch(COACH_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({foto,refeicao:tipo})});
-    const d=await r.json();
-    if(!r.ok)throw new Error(d.erro||r.status);
+    const d=await estimar(obs?{foto,refeicao:tipo,obs}:{foto,refeicao:tipo});
     const a=d.analise||{};
     if(a.erro)toast('Não reconheci comida nessa foto. Tente de novo mais de perto.');
     else{
       const o=dia(dataSel);
-      const desc=(a.itens||[]).map(x=>x.nome+(x.porcao?' ('+x.porcao+')':'')).join(', ')||'Prato fotografado';
+      const desc=obs||(a.itens||[]).map(x=>x.nome+(x.porcao?' ('+x.porcao+')':'')).join(', ')||'Prato fotografado';
       let fotoId=null;try{fotoId='f'+Date.now();await FDB.put(fotoId,mini);S.fotoCache[fotoId]=mini}catch(e){fotoId=null}
       const ref={tipo,desc,carbo:Math.round(+a.carbo_total_g||0),kcal:Math.round(+a.kcal_total||0),dica:a.dica||'',fotoId};
       if(hora)ref.hora=hora;
-      o.refeicoes.push(ref);S.refH='';
+      o.refeicoes.push(ref);S.refH='';S.refD='';{const rd=document.getElementById('refD');if(rd)rd.value=''}document.activeElement&&document.activeElement.blur();
       S.fotoBusy=false;saveDia(o);toast(ref.hora?`${tipo} registrado às ${ref.hora}${origem==='da foto'?' (horário da foto)':''}. Se não for, toque no 🕒 para corrigir.`+(dataSel===hoje()?avisoPassou(ref):''):'Refeição adicionada pela foto.',5000);autoLembrete(o,ref);return;
     }
   }catch(e){toast('Não consegui analisar agora ('+e.message+').')}
