@@ -62,6 +62,8 @@ button.link{background:transparent;color:var(--plum);padding:4px 0;text-decorati
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--plum);outline-offset:2px}
 button:disabled{opacity:.45;cursor:not-allowed}
 body.so-leitura button[hidden]{display:none}
+.hbtn{background:none;border:1px dashed var(--line);color:var(--muted);font:inherit;font-size:.78rem;padding:1px 7px;border-radius:9px;min-height:0;width:auto;cursor:pointer}
+body.so-leitura .hbtn:disabled{opacity:1;border-color:transparent;cursor:default}
 .syncbar{background:var(--water-soft);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:12px 0 0;font-size:.85rem}
 .synccod{font:600 1.05rem/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;color:var(--plum);word-break:break-all;margin-top:4px}
 body.so-leitura input:disabled,body.so-leitura select:disabled,body.so-leitura textarea:disabled{opacity:1;color:var(--ink);background:var(--bg)}
@@ -198,7 +200,7 @@ section.card>details:first-child>summary{padding-top:0}
    Dados: localStorage "jardim-cache" = {dias, config}
           IndexedDB "jardim-fotos" (store "fotos") = fotos por id
    ===================================================================== */
-const APP_VERSAO='2.1';
+const APP_VERSAO='2.2';
 const SCHEMA=2;
 const pad=n=>String(n).padStart(2,'0');
 const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
@@ -701,13 +703,15 @@ function vHoje(){
     <p class="muted">A dose é sempre a que o endocrinologista definiu.</p>
   </section>
   <section class="card"><h2>Refeições${o.refeicoes.some(r=>r.carbo!=null)?` · ≈ ${o.refeicoes.reduce((a,r)=>a+(+r.carbo||0),0)} g carbo`:''}</h2>
-    <div class="row"><div class="nf" style="width:42%"><label class="f" for="refT">Refeição</label><select id="refT">${REF.map(r=>`<option ${r===S.ultRefT?'selected':''}>${r}</option>`).join('')}</select></div>
-    <div><label class="f" for="refD">O que comeu</label><input id="refD" placeholder="ex.: 1 pão integral, ovo, café"></div></div>
+    <div class="row"><div><label class="f" for="refT">Refeição</label><select id="refT">${REF.map(r=>`<option ${r===S.ultRefT?'selected':''}>${r}</option>`).join('')}</select></div>
+    <div class="nf" style="width:40%"><label class="f" for="refH">Horário</label><input id="refH" type="time" value="${esc(S.refH||'')}"></div></div>
+    <p class="tiny" style="margin:4px 0 0">${S.sel===hoje()?'Vazio = agora. Foto da galeria: o app tenta usar o horário em que a foto foi tirada.':'Informe o horário, se souber.'}</p>
+    <label class="f" for="refD" style="margin-top:8px">O que comeu</label><input id="refD" placeholder="ex.: 1 pão integral, ovo, café">
     <button style="margin-top:10px;width:100%" data-act="addRef">Adicionar refeição</button>
     <div class="row" style="margin-top:8px">${S.fotoBusy?'<button class="ghost" disabled>Analisando o prato…</button>':'<button class="ghost" data-act="foto">📷 Tirar foto</button><button class="ghost" data-act="galeria">🖼️ Da galeria</button>'}</div>
     <input id="fotoIn" type="file" accept="image/*" capture="environment" hidden>
     <input id="galIn" type="file" accept="image/*" hidden>
-    <ul class="list">${o.refeicoes.map((x,i)=>`<li><span class="refrow">${x.fotoId?`<img class="thumb" data-foto="${esc(x.fotoId)}" alt="">`:''}<span><b>${esc(x.tipo)}</b>${x.hora?` <span class="tiny">${esc(x.hora)}</span>`:''} · ${esc(x.desc)}${x.carbo!=null?`<br><span class="muted">≈ ${esc(x.carbo)} g de carboidrato · ${esc(x.kcal)} kcal</span>`:''}${x.dica?`<br><span class="muted">💡 ${esc(x.dica)}</span>`:''}${linhaPos(S.sel,x,i,true)}</span></span><button class="x" data-act="del" data-k="refeicoes" data-i="${i}" aria-label="Remover">×</button></li>`).join('')}</ul>
+    <ul class="list">${o.refeicoes.map((x,i)=>`<li><span class="refrow">${x.fotoId?`<img class="thumb" data-foto="${esc(x.fotoId)}" alt="">`:''}<span><b>${esc(x.tipo)}</b> <button class="hbtn" data-act="editHora" data-i="${i}" aria-label="Alterar horário">🕒 ${x.hora?esc(x.hora):'horário?'}</button> · ${esc(x.desc)}${x.carbo!=null?`<br><span class="muted">≈ ${esc(x.carbo)} g de carboidrato · ${esc(x.kcal)} kcal</span>`:''}${x.dica?`<br><span class="muted">💡 ${esc(x.dica)}</span>`:''}${linhaPos(S.sel,x,i,true)}</span></span><button class="x" data-act="del" data-k="refeicoes" data-i="${i}" aria-label="Remover">×</button></li>`).join('')}</ul>
     <p class="muted">A foto dá uma estimativa aproximada para entender o prato (precisa de internet). Não use para ajustar dose de insulina.</p>
   </section>
   <section class="card"><h2>Água · ${agua} de ${meta} copos</h2>
@@ -1304,11 +1308,13 @@ function vDialogo(){
    ===================================================================== */
 function autoLembrete(o,r){
   const k=REF_POS[r.tipo];const L=S.config.lembretes;
-  if(k&&L.ativo&&L[k]&&L[k].on&&o.data===hoje()&&r.hora&&!(o.glic&&o.glic[k]!=null))criarLembrete2h(k,r.hora);
+  if(k&&L.ativo&&L[k]&&L[k].on&&o.data===hoje()&&r.hora&&horaMais(r.hora,120)>agoraHM()&&!(o.glic&&o.glic[k]!=null))criarLembrete2h(k,r.hora);
 }
 document.addEventListener('change',e=>{
   const el=e.target;
-  if(el.id==='fotoIn'||el.id==='galIn'){const f=el.files&&el.files[0];el.value='';if(f)analisarFoto(f);return}
+  if(el.id==='fotoIn'||el.id==='galIn'){const f=el.files&&el.files[0];el.value='';if(f)analisarFoto(f,el.id==='galIn');return}
+  if(el.id==='refH'){S.refH=el.value;return}
+  if(el.id==='refT'){S.ultRefT=el.value;return}
   if(el.id==='bkIn'){const f=el.files&&el.files[0];el.value='';if(f)lerArquivoBackup(f);return}
   if(el.id==='albIn'||el.id==='albGalIn'){const f=el.files&&el.files[0];el.value='';if(f)fotoAlbum(f);return}
   if(el.id==='rObs'){S.config.relObs=el.value;cache();return}
@@ -1336,8 +1342,17 @@ document.addEventListener('click',async e=>{
   if(a==='addIns'){const un=val('insU');if(!un)return toast('Informe as unidades.');const h=val('insH')||agoraHM();o.insulina.push({tipo:val('insT')||'Insulina',un,hora:h});saveDia(o);toast('Dose registrada.')}
   if(a==='foto'){S.ultRefT=val('refT');document.getElementById('fotoIn').click()}
   if(a==='galeria'){S.ultRefT=val('refT');document.getElementById('galIn').click()}
-  if(a==='addRef'){const d=val('refD');if(!d)return toast('Escreva o que ela comeu.');const r={tipo:val('refT'),desc:d};if(S.sel===hoje())r.hora=agoraHM();S.ultRefT=r.tipo;o.refeicoes.push(r);saveDia(o);
-    toast(r.hora?`${r.tipo} registrado às ${r.hora}.`:`${r.tipo} registrado.`);autoLembrete(o,r)}
+  if(a==='addRef'){const d=val('refD');if(!d)return toast('Escreva o que ela comeu.');const r={tipo:val('refT'),desc:d};const h=horaValida(val('refH'));
+    if(h&&S.sel===hoje()&&h>agoraHM())return toast('Esse horário ainda não chegou. Confira o horário.');
+    if(h)r.hora=h;else if(S.sel===hoje())r.hora=agoraHM();S.ultRefT=r.tipo;S.refH='';o.refeicoes.push(r);saveDia(o);
+    toast(r.hora?`${r.tipo} registrado às ${r.hora}.`+avisoPassou(r):`${r.tipo} registrado.`,3500);autoLembrete(o,r)}
+  if(a==='editHora'){const r=o.refeicoes[+b.dataset.i];if(!r)return;
+    const txt=prompt(`Horário em que comeu (${r.tipo}), ex.: 08:15`,r.hora||'');if(txt===null)return;
+    const h=horaValida(txt);if(!h)return toast('Horário inválido. Use o formato 08:15.');
+    if(S.sel===hoje()&&h>agoraHM())return toast('Esse horário ainda não chegou.');
+    r.hora=h;const k=REF_POS[r.tipo],L=S.config.lembretes;
+    if(k&&S.sel===hoje()){L.pendentes=L.pendentes.filter(p=>!(p.data===S.sel&&p.tipo===k));delete enviadosHoje()['pos-'+k]}
+    saveDia(o);toast(`Horário alterado para ${h}.`+avisoPassou(r),3500);autoLembrete(o,r)}
   if(a==='lembrar2h'){const r=o.refeicoes[+b.dataset.i];if(r)criarLembrete2h(r.tipo,r.hora)}
   if(a==='addAt'){const t=val('atT'),m=val('atM');if(!t||!m)return toast('Preencha atividade e minutos.');o.atividade.push({tipo:t,min:+m});saveDia(o)}
   if(a==='del'){const it=o[b.dataset.k][+b.dataset.i];if(it&&it.fotoId){FDB.del(it.fotoId).catch(()=>{});delete S.fotoCache[it.fotoId]}o[b.dataset.k].splice(+b.dataset.i,1);saveDia(o)}
@@ -1394,6 +1409,16 @@ document.addEventListener('click',async e=>{
   if(a==='confRestaurar'){S.dlg=null;render();toast('Restaurando…');confirmarRestauracao()}
 });
 
+function horaValida(t){if(t==null)return null;t=String(t).trim().replace(/[h.]/i,':');const m=t.match(/^(\d{1,2}):?(\d{2})$/);if(!m)return t===''?'':null;const h=+m[1],mi=+m[2];return h<24&&mi<60?pad(h)+':'+pad(mi):null}
+function avisoPassou(r){const k=REF_POS[r.tipo];return k&&S.sel===hoje()&&r.hora&&horaMais(r.hora,120)<=agoraHM()?' Já passaram 2h: meça quando puder.':''}
+/* Horário em que a foto foi tirada: EXIF da câmera; se não houver, data do arquivo */
+async function horaDaFoto(file,data){
+  try{const buf=new Uint8Array(await file.slice(0,262144).arrayBuffer());let s='';for(let i=0;i<buf.length;i++)s+=String.fromCharCode(buf[i]);
+    const ms=[...s.matchAll(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):\d{2}/g)].map(m=>({d:m[1]+'-'+m[2]+'-'+m[3],h:m[4]+':'+m[5]}));
+    const ok=ms.filter(m=>m.d===data);if(ok.length)return ok.sort((a,b)=>a.h<b.h?-1:1)[0].h}catch(e){}
+  if(file.lastModified){const d=new Date(file.lastModified);if(iso(d)===data)return pad(d.getHours())+':'+pad(d.getMinutes())}
+  return null;
+}
 async function fotoAlbum(file){
   const s=S.albFotoSem;if(s==null)return;
   try{const img=await reduzir(file,900,.8);const id='album-'+s+'-'+Date.now();await FDB.put(id,img);S.fotoCache[id]=img;
@@ -1439,10 +1464,14 @@ async function reduzir(file,max=900,q=.75){
   c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
   return c.toDataURL('image/jpeg',q);
 }
-async function analisarFoto(file){
+async function analisarFoto(file,daGaleria){
   if(!/^https:/.test(COACH_URL))return toast('Coach ainda não configurado.');
   if(navigator.onLine===false)return toast('A análise da foto precisa de internet. Você pode anotar a refeição por escrito.');
-  const dataSel=S.sel;const tipo=S.ultRefT||(document.getElementById('refT')||{}).value||'Refeição';
+  const dataSel=S.sel;const tipo=(document.getElementById('refT')||{}).value||S.ultRefT||'Refeição';
+  let hora=horaValida((document.getElementById('refH')||{}).value||S.refH||''),origem='informado';
+  if(!hora&&daGaleria){hora=await horaDaFoto(file,dataSel);origem='da foto'}
+  if(!hora&&dataSel===hoje()){hora=agoraHM();origem='agora'}
+  if(hora&&dataSel===hoje()&&hora>agoraHM()){hora=agoraHM();origem='agora'}
   S.fotoBusy=true;render();
   try{
     const foto=(await reduzir(file)).split(',')[1];const mini=await reduzir(file,520,.7);
@@ -1456,9 +1485,9 @@ async function analisarFoto(file){
       const desc=(a.itens||[]).map(x=>x.nome+(x.porcao?' ('+x.porcao+')':'')).join(', ')||'Prato fotografado';
       let fotoId=null;try{fotoId='f'+Date.now();await FDB.put(fotoId,mini);S.fotoCache[fotoId]=mini}catch(e){fotoId=null}
       const ref={tipo,desc,carbo:Math.round(+a.carbo_total_g||0),kcal:Math.round(+a.kcal_total||0),dica:a.dica||'',fotoId};
-      if(dataSel===hoje())ref.hora=agoraHM();
-      o.refeicoes.push(ref);
-      S.fotoBusy=false;saveDia(o);toast(ref.hora?`${tipo} registrado às ${ref.hora} pela foto.`:'Refeição adicionada pela foto.');autoLembrete(o,ref);return;
+      if(hora)ref.hora=hora;
+      o.refeicoes.push(ref);S.refH='';
+      S.fotoBusy=false;saveDia(o);toast(ref.hora?`${tipo} registrado às ${ref.hora}${origem==='da foto'?' (horário da foto)':''}. Se não for, toque no 🕒 para corrigir.`+(dataSel===hoje()?avisoPassou(ref):''):'Refeição adicionada pela foto.',5000);autoLembrete(o,ref);return;
     }
   }catch(e){toast('Não consegui analisar agora ('+e.message+').')}
   S.fotoBusy=false;render();
@@ -1601,7 +1630,7 @@ function aposRender(){
   document.body.classList.toggle('so-leitura',ro);
   if(!ro)return;
   const v=document.getElementById('view');if(!v)return;
-  v.querySelectorAll('button[data-act]').forEach(b=>{if(!syncAcaoLivre(b.dataset.act)){b.disabled=true;if(!b.classList.contains('drop'))b.hidden=true}});
+  v.querySelectorAll('button[data-act]').forEach(b=>{if(!syncAcaoLivre(b.dataset.act)){b.disabled=true;if(!b.classList.contains('drop')&&!b.classList.contains('hbtn'))b.hidden=true}});
   v.querySelectorAll('input,select,textarea').forEach(el=>{if(!syncCampoLivre(el.id)){el.disabled=true;el.placeholder=''}});
   v.insertAdjacentHTML('afterbegin',`<div class="syncbar" id="syncBar">${syncBarTxt()}</div>`);
 }
