@@ -67,6 +67,9 @@ body.so-leitura .hbtn:disabled{opacity:1;border-color:transparent;cursor:default
 .acoes{display:flex;flex-direction:column;align-items:center;gap:2px}
 .acoes .x{font-size:.95rem}
 li.editref{background:var(--plum-soft);border-radius:12px;padding:10px;margin:6px 0}
+.plop{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;background:var(--surface)}
+.plop ul{margin:6px 0 8px;padding-left:18px}.plop li{margin:3px 0}
+.plcat{margin:0 0 10px}.plcat select{margin-top:4px}
 .syncbar{background:var(--water-soft);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:12px 0 0;font-size:.85rem}
 .synccod{font:600 1.05rem/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;color:var(--plum);word-break:break-all;margin-top:4px}
 body.so-leitura input:disabled,body.so-leitura select:disabled,body.so-leitura textarea:disabled{opacity:1;color:var(--ink);background:var(--bg)}
@@ -203,7 +206,7 @@ section.card>details:first-child>summary{padding-top:0}
    Dados: localStorage "jardim-cache" = {dias, config}
           IndexedDB "jardim-fotos" (store "fotos") = fotos por id
    ===================================================================== */
-const APP_VERSAO='2.3';
+const APP_VERSAO='2.4';
 const SCHEMA=2;
 const pad=n=>String(n).padStart(2,'0');
 const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
@@ -345,6 +348,9 @@ function migrar(){
     PREMIOS_V2.forEach(p=>{if(!tem.has(p.id))S.config.premios.push({...p})});
     S.config.premiosVersao=4;
   }
+  // plano alimentar da nutricionista (28/09/2026): entra uma vez; depois é mantido como está
+  if(!S.config.planoIds)S.config.planoIds=[];
+  if(typeof PLANO_CAMILA!=='undefined'&&!S.config.planoIds.includes(PLANO_CAMILA.id)){S.config.plano=clone(PLANO_CAMILA);S.config.planoIds.push(PLANO_CAMILA.id)}
   S.config.schema=SCHEMA;
   if(mudou||antesTxt!==JSON.stringify(S.config))cache();
 }
@@ -718,6 +724,7 @@ function vHoje(){
     <ul class="list">${o.insulina.map((x,i)=>`<li><span>${esc(x.hora||'')} · ${esc(x.tipo)} ${esc(x.un)} UI</span><button class="x" data-act="del" data-k="insulina" data-i="${i}" aria-label="Remover">×</button></li>`).join('')}</ul>
     <p class="muted">A dose é sempre a que o endocrinologista definiu.</p>
   </section>
+  ${typeof cardPlanoHoje==='function'?cardPlanoHoje():''}
   <section class="card"><h2>Refeições${o.refeicoes.some(r=>r.carbo!=null)?` · ≈ ${o.refeicoes.reduce((a,r)=>a+(+r.carbo||0),0)} g carbo`:''}</h2>
     <div class="row"><div><label class="f" for="refT">Refeição</label><select id="refT">${REF.map(r=>`<option ${r===S.ultRefT?'selected':''}>${r}</option>`).join('')}</select></div>
     <div class="nf" style="width:40%"><label class="f" for="refH">Horário</label><input id="refH" type="time" value="${esc(S.refH||'')}"></div></div>
@@ -967,7 +974,7 @@ function vEu(){
   </details></section>
   <section class="card"><details><summary>🔒 Privacidade e internet</summary>
     <div class="kv" style="display:block"><b>Funciona sem internet</b><div class="muted">Registros, pontos, jardim, gráficos, Descobertas, relatório em PDF, álbum, lembretes e backup. Tudo é calculado no celular.</div></div>
-    <div class="kv" style="display:block"><b>Precisa de internet</b><div class="muted">Coach: envia a pergunta e um resumo dos últimos 7 dias (glicemias, refeições, água, atividade, insulina registrada e metas). Foto do prato: envia só a foto reduzida do prato. O álbum, as memórias, o peso e o backup nunca são enviados ao coach.</div></div>
+    <div class="kv" style="display:block"><b>Precisa de internet</b><div class="muted">Coach: envia a pergunta, um resumo dos últimos 7 dias (glicemias, refeições, água, atividade, insulina registrada e metas) e o plano alimentar da nutricionista (sem nome ou contato dela). Foto do prato: envia só a foto reduzida do prato. O álbum, as memórias, o peso e o backup nunca são enviados ao coach.</div></div>
     <div class="kv" style="display:block"><b>Compartilhar com outro celular</b><div class="muted">Só se for ligado em Eu → Compartilhar: todos os registros, fotos e álbum são copiados para o armazenamento do Worker (Cloudflare), protegidos por um código secreto, para o outro celular ver. Ao parar de compartilhar, essa cópia é apagada.</div></div>
     <p class="tiny" style="margin:8px 0 0">O coach e a análise de fotos usam o plano gratuito do Gemini (Google), que pode usar o conteúdo para melhorar os produtos dele. Evite fotos com rostos ou documentos.</p>
   </details></section>
@@ -1003,6 +1010,7 @@ function vPratos(){
     ${linhaPos(S.modal.d,r,S.modal.i,false)}
     <div class="btnrow" style="margin-top:12px"><button class="ghost" data-act="editRefModal">✏️ Editar</button><button class="ghost" data-act="fechar">Fechar</button></div></div></div>`}
   return `
+  ${S.config.plano?`<button class="ghost" style="width:100%;margin:12px 0 0" data-act="plano">📋 Plano alimentar da nutricionista</button>`:''}
   <section class="card"><h2>Carboidratos por dia (estimados)</h2>${chart}
     <p class="muted">Carboidrato é o que mais pesa na glicemia; as calorias aparecem só como referência. Tudo é estimativa pela foto.</p></section>
   ${ds.length?ds.map(d=>{const o=S.dias[d],t=totDia(o);return `<section class="card">
@@ -1023,7 +1031,7 @@ function render(){
   const ae=document.activeElement;
   if(ae&&v.contains(ae)&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName)&&ae.type!=='checkbox'&&ae.type!=='file'){S.pendingRender=true;renderHeader();return}
   S.pendingRender=false;
-  const fn=S.sub==='album'?vAlbum:S.sub==='relatorio'?vRelatorio:{hoje:vHoje,glic:vGlic,desc:vDesc,pratos:vPratos,coach:vCoach,premios:vPremios,eu:vEu}[S.tab];
+  const fn=S.sub==='plano'?vPlano:S.sub==='album'?vAlbum:S.sub==='relatorio'?vRelatorio:{hoje:vHoje,glic:vGlic,desc:vDesc,pratos:vPratos,coach:vCoach,premios:vPremios,eu:vEu}[S.tab];
   v.innerHTML=fn()+vDialogo();hidratarFotos();
   renderHeader();
   document.getElementById('tabs').innerHTML=TABS.map(([k,n,i])=>`<button data-tab="${k}" aria-current="${S.tab===k&&!S.sub}"><span aria-hidden="true">${i}</span>${n}</button>`).join('');
@@ -1037,6 +1045,107 @@ function renderHeader(){
   document.getElementById('chips').innerHTML=`<span class="chip">🌸 ${t.saldo} pontos</span><span class="chip">🔥 ${t.seq} dias seguidos</span>${cuidado().murcha?'<span class="chip">🥀 com sede</span>':''}`;
 }
 document.addEventListener('focusout',()=>setTimeout(()=>{if(S.pendingRender)render()},50));
+
+/* =====================================================================
+   Plano alimentar da nutricionista (guardado em S.config.plano)
+   Vai junto no backup e no compartilhamento. Só consulta e registro:
+   o app não altera o plano nem as quantidades.
+   ===================================================================== */
+const PLANO_CAMILA={
+  id:'camila-2026-09-28',nutri:'Nutricionista Camila Resende',crn:'CRN 52 948',data:'2026-09-28',
+  objetivo:'Controle do peso e controle glicêmico (DM gestacional)',
+  refeicoes:[
+    {hora:'06:30',nome:'Café da manhã',tipo:'Café da manhã',opcoes:[
+      {t:'Opção 1',itens:['2 ovos mexidos (untar a frigideira com azeite extra virgem)','Shake: 200 mL de leite desnatado + 4 morangos + 2 colheres de sopa de abacate + 7 g de psyllium + 15 g de whey. Bater e tomar imediatamente']},
+      {t:'Opção 2',itens:['Aveioca: 1 ovo inteiro + 1 colher de sopa de aveia + 1 colher de chá de leite em pó desnatado + 1 colher de chá de cacau em pó. Misturar tudo e grelhar dos dois lados','Rechear: 3 morangos picados','1 xícara de café (adoçante stevia)']},
+      {t:'Opção 3',itens:['Cuscuz fake: 1 ovo + 2 colheres de sopa de flocão hidratado + 25 g de queijo minas padrão + sal. Misturar e grelhar','Shake: 200 mL de leite desnatado + 2 fatias de mamão + 15 g de whey + 7 g de psyllium. Bater com gelo']}]},
+    {hora:'09:30',nome:'Lanche da manhã',tipo:'Lanche da manhã',opcoes:[
+      {t:'Opção 1',itens:['4 Magic Toast','80 g de patê de frango: 60 g de cottage ou creme de ricota + 60 g de frango + cenoura ralada + cheiro-verde + temperos a gosto']},
+      {t:'Opção 2',itens:['160 mL de iogurte desnatado','1 colher de sopa de farelo de aveia','90 g de melão','90 g de pera']}]},
+    {hora:'11:30',nome:'Almoço',tipo:'Almoço',prato:{
+      orient:['Pese os alimentos prontos na hora de montar o prato (balança de cozinha: coloque o prato, tecle TARA e vá adicionando nas quantidades propostas).','Varie a montagem com as opções de cada categoria. O prato deve ter sempre pelo menos um alimento de cada categoria.'],
+      cats:[
+        {n:'Salada de folhas',q:'à vontade',ops:['alface','rúcula','repolho','acelga','agrião','couve','espinafre'],obs:'Usar pouco azeite e nenhum outro tipo de óleo'},
+        {n:'Proteína',q:'100 g',ops:['peito de frango','sassami','tilápia','salmão','atum','sardinha','mignon suíno','lombo suíno','patinho moído','coxão mole','músculo bovino'],obs:'Cozida, grelhada ou assada. Apenas estas opções'},
+        {n:'Carboidrato',q:'',ops:['70 g de arroz negro','70 g de arroz multigrãos','100 g de batata','100 g de mandioca','100 g de mandioquinha','100 g de abóbora cabotiá']},
+        {n:'Leguminosa',q:'100 g',ops:['feijão','grão-de-bico','lentilha','ervilha']},
+        {n:'Legumes',q:'70 g',ops:['abobrinha','chuchu','cenoura','berinjela','pimentão','cebola','brócolis','couve-flor','vagem','quiabo','tomate'],obs:'Cozidos, assados ou na airfryer'}],
+      obs:'Evite frituras, excesso de sal e molhos prontos para salada. Cuidado com o azeite adicionado nas saladas.'}},
+    {hora:'13:30',nome:'Lanche 1',tipo:'Lanche da tarde',opcoes:[
+      {t:'Opção 1',itens:['Crepioca: 1 ovo + 20 g de goma de tapioca + 1 pitada de sal','20 g de cottage','Tomate + orégano','Enrolar como uma panqueca']}]},
+    {hora:'15:30',nome:'Lanche 2',tipo:'Lanche da tarde',opcoes:[
+      {t:'Opção 1',itens:['4 biscoitos de arroz','80 g de patê de atum: 60 g de cottage ou creme de ricota + 60 g de atum + cenoura ralada + cheiro-verde + temperos a gosto']},
+      {t:'Opção 2',itens:['8 morangos + 1 colher de sopa de aveia em pó + 1 dosador de Isocrisp','1 ovo cozido inteiro']}]},
+    {hora:'19:00',nome:'Jantar',tipo:'Jantar',opcoes:[
+      {t:'Opção 1',itens:['100 g de cubos de frango + 80 g de chuchu e abobrinha cozidos em cubos pequenos. Dourar os legumes na frigideira, entrar com os ovos batidos e grelhar dos dois lados','150 g de abóbora cabotiá cozida','70 g de feijão','Salada de folhas à vontade']},
+      {t:'Opção 2',itens:['120 g de tilápia com molho de tomate','2 palmitos picados','Couve ou espinafre','40 g de arroz negro','80 g de feijão','Salada de folhas à vontade']},
+      {t:'Opção 3',itens:['200 g de salada de ovo com chuchu cremoso: 2 ovos cozidos + 120 g de chuchu cozido em cubos + 30 g de creme de ricota light ou cottage + temperos. Misturar tudo','Mix de legumes refogados à vontade','Salada à vontade']},
+      {t:'Opção 4',itens:['120 g de patinho moído refogado com molho de tomate','1/2 berinjela assada','30 g de ervilha fresca','Salada e legumes à vontade']}]}
+  ]
+};
+function plano(){const p=S.config.plano;return p&&Array.isArray(p.refeicoes)&&p.refeicoes.length?p:null}
+function refPlanoAgora(){
+  const p=plano();if(!p)return null;const agora=agoraHM(),rs=p.refeicoes;
+  // a refeição "da vez": a última cujo horário já chegou (com 45 min de antecedência)
+  let i=0;rs.forEach((r,k)=>{if(horaMais(r.hora,-45)<=agora)i=k});
+  if(horaMais(rs[rs.length-1].hora,150)<agora)return null; // depois do jantar
+  return i;
+}
+function jaRegistrou(r,d){const o=S.dias[d||S.sel];return!!(o&&(o.refeicoes||[]).some(x=>x.planoRef===r.nome||(!x.planoRef&&x.tipo===r.tipo&&r.tipo!=='Lanche da tarde')))}
+function htmlOpcao(k,r,j,op,compacto){
+  return`<div class="plop"><div class="plopt"><b>${esc(op.t)}</b>${S.config.plano&&!compacto?'':''}</div>
+    <ul>${op.itens.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+    <button class="ghost small" data-act="planoComi" data-r="${k}" data-o="${j}">✓ Comi esta opção</button></div>`;
+}
+function htmlPrato(k,r){
+  const pr=r.prato,sel=S.planoPrato||{};
+  return`<div class="plop">${pr.cats.map((c,i)=>`<div class="plcat"><b>${i+1}º ${esc(c.n)}</b>${c.q?` · <span class="pill wait">${esc(c.q)}</span>`:''}
+      <div class="muted tiny">${esc(c.ops.join(' · '))}${c.obs?' — '+esc(c.obs):''}</div>
+      ${i>0?`<select id="plc${i}" data-plc="${i}" aria-label="${esc(c.n)} escolhida"><option value="">Qual comeu?</option>${c.ops.map(o=>`<option ${sel[i]===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`:''}</div>`).join('')}
+    <p class="tiny" style="margin:6px 0">${esc(pr.obs)}</p>
+    <button class="ghost small" data-act="planoComi" data-r="${k}" data-o="prato">✓ Registrar o prato montado</button></div>`;
+}
+function cardPlanoHoje(){
+  const p=plano();if(!p||S.sel!==hoje())return'';
+  const k=refPlanoAgora();
+  if(k==null)return`<section class="card"><details><summary>🥗 Plano da nutricionista</summary><p class="muted" style="margin:8px 0">As refeições de hoje do plano já passaram. Amanhã começa com o café da manhã às ${esc(p.refeicoes[0].hora)}.</p><button class="ghost small" data-act="plano">Ver plano completo</button></details></section>`;
+  const r=p.refeicoes[k],feito=jaRegistrou(r,hoje()),prox=p.refeicoes[k+1];
+  return`<section class="card plano"><details ${S.abrirPlano===false?'':'open'} id="planoCard"><summary>🥗 Plano: ${esc(r.hora)} · ${esc(r.nome)}${feito?' ✓':''}</summary>
+    ${feito?`<p class="muted" style="margin:8px 0">✓ ${esc(r.nome)} já registrado hoje.${prox?` Próxima: <b>${esc(prox.hora)} · ${esc(prox.nome)}</b>.`:''}</p>`:''}
+    ${r.prato?htmlPrato(k,r):r.opcoes.map((op,j)=>htmlOpcao(k,r,j,op,true)).join('')}
+    <div class="btnrow"><button class="ghost small" data-act="plano">📋 Ver plano completo</button></div>
+    <p class="tiny" style="margin:6px 0 0">Plano de ${brAno(p.data)} · ${esc(p.nutri)}. Dúvidas sobre trocas ou quantidades: falar com a nutricionista.</p>
+  </details></section>`;
+}
+function vPlano(){
+  const p=plano();
+  const topo=`<div class="daybar"><button class="ghost small" data-act="voltar">‹ Voltar</button><b>Plano alimentar</b><span style="width:60px"></span></div>`;
+  if(!p)return topo+`<section class="card"><p class="muted">Nenhum plano cadastrado.</p></section>`;
+  const k0=S.sel===hoje()?refPlanoAgora():null;
+  return topo+`<section class="card"><h2>${esc(p.objetivo)}</h2>
+    <p class="muted" style="margin:0">${esc(p.nutri)} · ${esc(p.crn)} · plano de ${brAno(p.data)}</p>
+    <p class="tiny" style="margin:8px 0 0">Todos os dias. Toque em “Comi esta opção” para registrar a refeição com o horário de agora${S.refH?` (ou ${esc(S.refH)}, escolhido na aba Hoje)`:''}. As quantidades são as da nutricionista; o app só estima carboidratos para acompanhamento.</p></section>
+  ${p.refeicoes.map((r,k)=>`<section class="card"><details ${k===k0||S.planoAberto===k?'open':''}><summary>${esc(r.hora)} · ${esc(r.nome)}${S.sel===hoje()&&jaRegistrou(r,hoje())?' ✓':''}</summary>
+    ${r.prato?`<ul class="tiny" style="margin:8px 0 0;padding-left:18px">${r.prato.orient.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`+htmlPrato(k,r):r.opcoes.map((op,j)=>htmlOpcao(k,r,j,op)).join('')}
+  </details></section>`).join('')}
+  <p class="muted" style="text-align:center">O plano não substitui as orientações da nutricionista e da equipe médica.</p>`;
+}
+function descPlano(r,o){
+  if(o==='prato'){const sel=S.planoPrato||{};const partes=r.prato.cats.map((c,i)=>i===0?'salada de folhas':(sel[i]?(c.q&&!/^\d/.test(sel[i])?c.q+' de '+sel[i]:sel[i]):null)).filter(Boolean);
+    return'Prato do plano: '+partes.join(', ')}
+  const op=r.opcoes[+o];return`${op.t} do plano: ${op.itens.join('; ')}`;
+}
+/* Resumo curto do plano para o coach */
+function planoResumo(){
+  const p=plano();if(!p)return'';
+  const curto=s=>s.replace(/\s*\.\s*(Bater|Misturar|Dourar|Enrolar)[^;]*$/,'').slice(0,110);
+  let t=`Plano alimentar da nutricionista (${br(p.data)}), referência principal — não contradiga as quantidades e opções dele:\n`;
+  p.refeicoes.forEach(r=>{
+    if(r.prato)t+=`${r.hora} ${r.nome}: prato com salada à vontade + ${r.prato.cats.slice(1).map(c=>(c.q?c.q+' ':'')+c.n.toLowerCase()+' ('+c.ops.slice(0,4).join('/')+(c.ops.length>4?'…':'')+')').join(' + ')}.\n`;
+    else t+=`${r.hora} ${r.nome}: ${r.opcoes.map(o=>o.t+': '+o.itens.map(curto).join(' + ')).join(' | ')}\n`;
+  });
+  return t.slice(0,2600);
+}
 
 /* =====================================================================
    Relatório em PDF gerado no próprio celular (sem bibliotecas, sem internet)
@@ -1331,6 +1440,7 @@ document.addEventListener('change',e=>{
   const el=e.target;
   if(el.id==='fotoIn'||el.id==='galIn'){const f=el.files&&el.files[0];el.value='';if(f)analisarFoto(f,el.id==='galIn');return}
   if(el.id==='refH'){S.refH=el.value;return}
+  if(el.dataset.plc){S.planoPrato=S.planoPrato||{};S.planoPrato[el.dataset.plc]=el.value;return}
   if(el.id==='refD'){S.refD=el.value;return}
   if(el.id==='refT'){S.ultRefT=el.value;return}
   if(el.id==='bkIn'){const f=el.files&&el.files[0];el.value='';if(f)lerArquivoBackup(f);return}
@@ -1374,6 +1484,8 @@ document.addEventListener('click',async e=>{
   if(a==='lembrar2h'){const r=o.refeicoes[+b.dataset.i];if(r)criarLembrete2h(r.tipo,r.hora)}
   if(a==='addAt'){const t=val('atT'),m=val('atM');if(!t||!m)return toast('Preencha atividade e minutos.');o.atividade.push({tipo:t,min:+m});saveDia(o)}
   if(a==='del'){const it=o[b.dataset.k][+b.dataset.i];if(it&&it.fotoId){FDB.del(it.fotoId).catch(()=>{});delete S.fotoCache[it.fotoId]}o[b.dataset.k].splice(+b.dataset.i,1);saveDia(o)}
+  if(a==='plano'){S.sub='plano';S.planoAberto=null;render();window.scrollTo(0,0)}
+  if(a==='planoComi'){planoComi(+b.dataset.r,b.dataset.o)}
   if(a==='editRef'){S.editRef={d:S.sel,i:+b.dataset.i};render();const t=document.getElementById('erD');if(t)t.scrollIntoView({block:'center'})}
   if(a==='editRefModal'&&S.modal){S.sel=S.modal.d;S.editRef={d:S.modal.d,i:S.modal.i};S.modal=null;S.tab='hoje';render();const t=document.getElementById('erD');if(t)t.scrollIntoView({block:'center'})}
   if(a==='cancelRef'){S.editRef=null;render()}
@@ -1461,7 +1573,7 @@ function resumo(){
   const sa=semanaAtual(),m=S.config.metas;
   let t=`Semana de gestação: ${sa.s}. Metas de acompanhamento configuradas pela usuária conforme a equipe médica: jejum abaixo de ${m.jejum} e 2h pós-refeição abaixo de ${m.pos} mg/dL. Insulina prescrita pelo endocrinologista (${S.config.insulinaPadrao}).
 Regras do app (obrigatórias): não altere, calcule ou sugira doses de insulina ou remédios; não mande suspender medicamentos; não prescreva dieta terapêutica; não diagnostique diabetes nem complicações da gravidez; use as metas acima só para comentar tendências; diante de algo preocupante, oriente contato com a equipe médica ou serviço de emergência conforme a situação.
-Últimos 7 dias:\n`;
+${typeof planoResumo==='function'?planoResumo():''}Últimos 7 dias:\n`;
   for(let i=6;i>=0;i--){const d=addDays(hoje(),-i),o=S.dias[d];if(!o)continue;const g=o.glic||{};
     t+=`${br(d)}: jejum ${g.jejum??'-'}, pós-café ${g.cafe??'-'}, pós-almoço ${g.almoco??'-'}, pós-jantar ${g.jantar??'-'}; insulina ${(o.insulina||[]).map(x=>x.hora+' '+x.un+'UI').join(', ')||'-'}; refeições: ${(o.refeicoes||[]).map(r=>r.tipo+': '+r.desc+(r.carbo!=null?' (~'+r.carbo+' g carbo)':'')).join(' | ')||'-'}; água ${o.agua||0} copos; atividade ${(o.atividade||[]).reduce((a,b)=>a+(+b.min||0),0)} min\n`}
   return t;
@@ -1492,6 +1604,22 @@ async function reduzir(file,max=900,q=.75){
   const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
   c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
   return c.toDataURL('image/jpeg',q);
+}
+async function planoComi(k,o){
+  const p=plano();const r=p&&p.refeicoes[k];if(!r)return;
+  if(o==='prato'){const sel=S.planoPrato||{};const falta=r.prato.cats.slice(1).filter((c,i)=>!sel[i+1]).map(c=>c.n.toLowerCase());
+    if(falta.length&&!confirm('Não foi escolhido: '+falta.join(', ')+'. Registrar mesmo assim?'))return}
+  const d=S.sel,od=dia(d);const h=horaValida(S.refH||'');
+  if(h&&d===hoje()&&h>agoraHM())return toast('O horário escolhido na aba Hoje ainda não chegou.');
+  const ref={tipo:r.tipo,desc:descPlano(r,o).slice(0,500),planoRef:r.nome};
+  if(h)ref.hora=h;else if(d===hoje())ref.hora=agoraHM();
+  od.refeicoes.push(ref);const idx=od.refeicoes.length-1;S.refH='';if(o==='prato')S.planoPrato={};
+  S.planoAberto=k;saveDia(od);toast(`${r.nome} do plano registrado${ref.hora?' às '+ref.hora:''}.`+avisoPassou(ref),3500);autoLembrete(od,ref);
+  // estimativa de carboidratos (só acompanhamento), em segundo plano
+  if(navigator.onLine===false)return;
+  try{const res=await estimar({descricao:ref.desc,refeicao:ref.tipo});const a=res.analise||{};
+    const o2=dia(d),x=o2.refeicoes[idx];if(!x||x.desc!==ref.desc||x.carbo!=null||a.erro)return;
+    x.carbo=Math.round(+a.carbo_total_g||0);x.kcal=Math.round(+a.kcal_total||0);saveDia(o2)}catch(e){}
 }
 async function estimar(corpo){
   const r=await fetch(COACH_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)});
@@ -1572,7 +1700,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)return;cons
    ===================================================================== */
 var syncT=null,syncEnviando=false,syncPuxando=false,syncFaltam={},syncUltimoHash=null;
 // Ações e campos que continuam liberados no celular que só acompanha
-function syncAcaoLivre(a){return/^sync/.test(a||'')||['dia','verPrato','fechar','maisDias','gper','gser','histTudo','corrMais','relatorio','voltar','rper','gerarRel','relAbrir','relBaixar','relComp','album','ask','fecharDlg','backup','bkSalvar','bkComp'].includes(a)}
+function syncAcaoLivre(a){return/^sync/.test(a||'')||['dia','verPrato','fechar','maisDias','gper','gser','histTudo','corrMais','relatorio','voltar','rper','gerarRel','relAbrir','relBaixar','relComp','album','plano','ask','fecharDlg','backup','bkSalvar','bkComp'].includes(a)}
 function syncCampoLivre(id){return['cq','rIni','rFim','rObs','bkFotos','syncCod'].includes(id)}
 
 function syncEstado(){
